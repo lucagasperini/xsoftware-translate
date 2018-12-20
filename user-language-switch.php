@@ -1064,100 +1064,25 @@ function uls_add_scripts() {
 add_action( 'wp_enqueue_scripts', 'uls_add_scripts' );
 
 
-add_filter('manage_posts_columns', 'webilop_add_posts_columns');
-function webilop_add_posts_columns($columns) {
+add_filter('manage_posts_columns', 'uls_add_columns');
+add_filter('manage_pages_columns', 'uls_add_columns');
+function uls_add_columns($columns) {
     unset($columns['date']);
     $columns['language'] = 'Language';
-    $columns['translation'] = 'Translations';
     $columns['date'] = 'Date';
     return $columns;
 }
-add_action('manage_posts_custom_column',  'webilop_show_posts_columns');
-function webilop_show_posts_columns($name) {
+add_action('manage_posts_custom_column',  'uls_show_columns');
+add_action('manage_pages_custom_column',  'uls_show_columns');
+function uls_show_columns($name) {
     global $post;
     $string = "";
-    switch ($name) {
-      case 'language':
-        $views = get_post_meta($post->ID, 'uls_language', true);
-        $printFlag = '<img src="'.plugins_url("css/blank.gif", __FILE__).'"';
-        $printFlag .= 'style="margin-right:5px;"';
-        $printFlag .= 'class="flag_16x11 flag-'.Codes::languageCode2CountryCode($views).'"';
-        $printFlag .= 'alt="'.$views.'" title="'.$views.'" />';
-        echo $printFlag;
-      break;
-      case 'translation':
-        $string = "";
-        $views = get_post_meta($post->ID);
-        foreach($views as $key => $value) {
-          if(strpos($key,'uls_translation_') !== false){
-            $string[$key] =  $value[0]; // get the ids to after get_post_meta with the uls_language
-          }
-        }
-        $views = get_post_meta($post->ID, 'uls_language', true);
-        if($string != ""){
-         unset($string[$views]);
-         foreach ($string as $key => $value) {
-          $language_code = get_post_meta($value, 'uls_language', true);
-          $printFlag = '<a href="'.get_edit_post_link($value).'">';
-          $printFlag .= '<img src="'.plugins_url("css/blank.gif", __FILE__).'"';
-          $printFlag .= 'style="margin-right:5px;"';
-          $printFlag .= 'class="flag_16x11 flag-'.Codes::languageCode2CountryCode($language_code).'"';
-          $printFlag .= 'alt="'.$views.'" title="'.$language_code.'" />';
-          $printFlag .= '</a>';
-          echo $printFlag;
-         }
-      }else
-         echo $string;
-      break;
-    }
-}
-add_filter('manage_pages_columns', 'webilop_add_pages_columns');
-function webilop_add_pages_columns($columns) {
-    unset($columns['date']);
-    $columns['language'] = 'Language';
-    $columns['translation'] = 'Translations';
-    $columns['date'] = 'Date';
-    return $columns;
-}
-
-add_action('manage_pages_custom_column',  'webilop_show_pages_columns');
-function webilop_show_pages_columns($name) {
-    global $post;
-    $string = "";
-    switch ($name) {
-        case 'language':
-        $views = get_post_meta($post->ID, 'uls_language', true);
-        $printFlag = '<img src="'.plugins_url("css/blank.gif", __FILE__).'"';
-        $printFlag .= 'style="margin-right:5px;"';
-        $printFlag .= 'class="flag_16x11 flag-'.Codes::languageCode2CountryCode($views).'"';
-        $printFlag .= 'alt="'.$views.'" title="'.$views.'" />';
-        echo $printFlag;
-      break;
-      case 'translation':
-        $string = "";
-        $views = get_post_meta($post->ID);
-        foreach($views as $key => $value) {
-          if(strpos($key,'uls_translation_') !== false){
-            $string[$key] =  $value[0]; // get the ids to after get_post_meta with the uls_language
-          }
-        }
-        $views = get_post_meta($post->ID, 'uls_language', true);
-        if($string != ""){
-         unset($string[$views]);
-         foreach ($string as $key => $value) {
-          $language_code = get_post_meta($value, 'uls_language', true);
-          $printFlag = '<a href="'.get_edit_post_link($value).'">';
-          $printFlag .= '<img src="'.plugins_url("css/blank.gif", __FILE__).'"';
-          $printFlag .= 'style="margin-right:5px;"';
-          $printFlag .= 'class="flag_16x11 flag-'.Codes::languageCode2CountryCode($language_code).'"';
-          $printFlag .= 'alt="'.$views.'" title="'.$language_code.'" />';
-          $printFlag .= '</a>';
-          echo $printFlag;
-         }
-      }else
-         echo $string;
-      break;
-    }
+    $views = get_post_meta($post->ID, 'uls_language', true);
+    $printFlag = '<img src="'.plugins_url("css/blank.gif", __FILE__).'"';
+    $printFlag .= 'style="margin-right:5px;"';
+    $printFlag .= 'class="flag_16x11 flag-'.Codes::languageCode2CountryCode($views).'"';
+    $printFlag .= 'alt="'.$views.'" title="'.$views.'" />';
+    echo $printFlag;
 }
 
 /**
