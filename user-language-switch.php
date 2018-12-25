@@ -363,7 +363,6 @@ function uls_redirect_by_page_language(){
   $url = uls_get_browser_url();
   
   $redirectUrl = uls_get_redirect_url($url);
-  var_dump($redirectUrl);
 
   if($redirectUrl != $url){
         wp_redirect($redirectUrl);
