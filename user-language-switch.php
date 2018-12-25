@@ -652,6 +652,8 @@ function uls_get_url_translated($url, $language, $type = 'prefix', $remove_defau
    global $uls_permalink_convertion;
    $uls_permalink_convertion = true;
 
+   /* REMOVED BECAUSE ERASE $_GET VARIABLE OF DEFAULT LANGUAGE
+   
    //if URL will omit default language
    if($remove_default_language){
       //if language is the same for the user
@@ -661,7 +663,8 @@ function uls_get_url_translated($url, $language, $type = 'prefix', $remove_defau
       elseif(! is_user_logged_in() && $language == uls_get_site_language())
          $language = '';
    }
-
+   */
+   
    //add language to the url
    switch($type){
       case 'query_var':
