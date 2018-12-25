@@ -116,6 +116,7 @@ function uls_buddypress_rewrite_rules($directory_pages){
  * @param object $user Logged user's data.
  * @return string
  */
+
 function uls_login_redirect( $redirect_to, $request, $user ) {
   //check if the URL is an admin URL
   if(false !== strpos($redirect_to, '/wp-admin')){
@@ -131,6 +132,7 @@ function uls_login_redirect( $redirect_to, $request, $user ) {
   
   return $redirect_to;
 }
-//add_filter( 'login_redirect', 'uls_login_redirect', 10, 3 );
+
+add_filter( 'login_redirect', 'uls_login_redirect', 10, 3 );
 
 ?>

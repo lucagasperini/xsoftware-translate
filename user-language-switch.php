@@ -361,48 +361,42 @@ function uls_redirect_by_page_language(){
 
   //get the id of the current page
   $url = uls_get_browser_url();
-  $id = url_to_postid($url);
+  
+  $redirectUrl = uls_get_redirect_url($url);
+  var_dump($redirectUrl);
 
-  //if the page has an id
-  if(0 < $id){
-    //get the language of the page
-    $postLanguage = uls_get_post_language($id);
+  if($redirectUrl != $url){
+        wp_redirect($redirectUrl);
+        exit;
+  }
+}
 
-    //if the page has a language
-    if("" != $postLanguage){
-      //get the language from URL
-      $urlLanguage = uls_get_user_language_from_url();
-      //get the language from the site
-      $siteLanguage = uls_get_user_saved_language();
-      if(empty($siteLanguage))
+function uls_get_redirect_url($url)
+{
+        $id = url_to_postid($url);
+
+        //if the page has an id
+        if(0 < $id) {
+                //get the language of the page
+                $postLanguage = uls_get_post_language($id);
+
+                //if the page has a language
+                if(!empty($postLanguage)) {
+                        return uls_get_url_translated($url, $postLanguage);
+                }
+        }
+        //get the language from URL
+        $urlLanguage = uls_get_user_language_from_url();
+        //get the language from the site
         $siteLanguage = uls_get_site_language();
-
-      //if the language(saved and default) of the site is different to the language of the page and there is no prefix in the site.
-      if($siteLanguage != $postLanguage && empty($urlLanguage)){
-        //redirect to the current page with the correct prefix
-        $redirectUrl = uls_get_url_translated($url, $postLanguage);
-        if($redirectUrl != $url){
-          wp_redirect($redirectUrl);
-          exit;
+                        
+        if(empty($urlLanguage)) {
+                return uls_get_url_translated($url, $siteLanguage);
+        } else {
+                return uls_get_url_translated($url, $urlLanguage);
         }
-      }
-      //if the language of the site is the same of the language in the URL and different to the language of the post
-      //or if the language of the site is the same of the language of the post but different to the language of the URL
-      else if(($siteLanguage == $urlLanguage && $urlLanguage != $postLanguage)
-        || ($siteLanguage == $postLanguage && $urlLanguage != $postLanguage)){
-        //check the translation of the post using the language of the URL
-        $translation_id = uls_get_post_translation_id($id, $urlLanguage);
-        if(!empty($translation_id)){
-          //redirect to the language of the URL
-          $redirectUrl = get_permalink($translation_id);
-          if($redirectUrl != $url){
-            wp_redirect($redirectUrl);
-            exit;
-          }
-        }
-      }
-    }//if the page has a language
-  }//if the page has an id
+  
+  return $url;
 }
 
 /**
