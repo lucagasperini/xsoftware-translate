@@ -82,34 +82,28 @@ function uls_init_plugin(){
  * @return mixed it returns a string containing a language code or false if there isn't any language detected.
  */
 function uls_get_user_language_from_url($only_lang = false){
-  if(!isset($_SERVER['HTTP_HOST']) || !isset($_SERVER['REQUEST_URI'])) {
-    return false;
-  }
-  //get language from URL
-  $language = null;
-  //get the language form query vars
-  if(!empty($_SERVER['QUERY_STRING'])){
-    parse_str($_SERVER['QUERY_STRING']);
-    if(!empty($lang))
-      $language = $lang;
-  }
-  if(is_null($language)){
-    //activate flag to avoid translations and get the real URL of the blog
-    global $uls_permalink_convertion;
-    $uls_permalink_convertion = true;
+        if(!isset($_SERVER['HTTP_HOST']) || !isset($_SERVER['REQUEST_URI'])) {
+                return false;
+        }
+        //get language from URL
+        $language = null;
+        if(is_null($language)) {
+                //activate flag to avoid translations and get the real URL of the blog
+                global $uls_permalink_convertion;
+                $uls_permalink_convertion = true;
 
-    //get the langauge from the URL
-    $url = str_replace(get_bloginfo('url'), '', 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-    if( isset($url[0]) && $url[0] == '/') $url = substr($url, 1);
-    $parts = explode('/', $url);
-    if(count($parts) > 0)
-      $language = $parts[0];
+                //get the langauge from the URL
+                $url = str_replace(get_bloginfo('url'), '', 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+                if( isset($url[0]) && $url[0] == '/') $url = substr($url, 1);
+                        $parts = explode('/', $url);
+                if(count($parts) > 0)
+                        $language = $parts[0];
 
-    //reset the flag
-    $uls_permalink_convertion = true;
-  }
+                //reset the flag
+                $uls_permalink_convertion = true;
+        }
 
-  return uls_valid_language($language) ? $language : false;
+        return uls_valid_language($language) ? $language : false;
 }
 
 
