@@ -65,41 +65,46 @@ function uls_get_permalink($post_id, $language = null){
  * @return string the HTML link of the translation link of a post.
  */
 function uls_get_link($post_id = null, $language = null, $label = null, $class='uls-link' ){
-  // instance the atribute
-  $translation_url = "#";
+        // instance the atribute
+        $translation_url = "#";
 
-  if ($post_id == null) {
-    if (is_home() || is_front_page() || is_archive() || is_search() || is_author() || is_category() || is_tag() || is_date()) {
-      $url = uls_get_browser_url();
-      $translation_url = uls_get_url_translated($url, $language);
-    }
-    else if (is_search()) {
-      $url = get_home_url();
-      $url .= "?s=".get_search_query();
-      $translation_url = uls_get_url_translated($url, $language);
-    }
-  }
-  else {
-    $translation_id = uls_get_post_translation_id($post_id, $language);
-    if(empty($translation_id))
-      $translation_id = $post_id;
+        if ($post_id == null) {
+                if (is_home() || is_front_page() || is_archive() || is_search() || is_author() || is_category() || is_tag() || is_date()) {
+                        $url = uls_get_browser_url();
+                        $translation_url = uls_get_url_translated($url, $language);
+                }
+                else if (is_search()) {
+                        $url = get_home_url();
+                        $url .= "?s=".get_search_query();
+                        $translation_url = uls_get_url_translated($url, $language);
+                }
+        } else {
+        $translation_id = uls_get_post_translation_id($post_id, $language);
+        if(empty($translation_id))
+                $translation_id = $post_id;
 
-    //set conversion of permalinks to true
-    global $uls_permalink_convertion;
-    $uls_permalink_convertion = true;
+        //set conversion of permalinks to true
+        global $uls_permalink_convertion;
+        $uls_permalink_convertion = true;
 
-    $translation_url = uls_get_url_translated(get_permalink($translation_id), $language);
+        $translation_url = uls_get_url_translated(get_permalink($translation_id), $language);
 
-    //reset conversion of permalinks
-    $uls_permalink_convertion = false;
+        //reset conversion of permalinks
+        $uls_permalink_convertion = false;
 
-    $title = get_the_title($translation_id);
-  }
+        $title = get_the_title($translation_id);
+        }
+  
+        if (!empty($_GET)) {
+                $translation_url .= "?";
+                foreach($_GET as $key => $value)
+                        $translation_url .=  $key . "=" . $value;
+        }
 
-  if(null == $label)
-    return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $title . '</a>';
-  else
-    return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $label . '</a>';
+        if(null == $label)
+                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $title . '</a>';
+        else
+                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $label . '</a>';
 }
 /**
  * Add shortcode to get link.
