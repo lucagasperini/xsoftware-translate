@@ -66,16 +66,11 @@ function uls_get_permalink($post_id, $language = null){
  */
 function uls_get_link($post_id = null, $language = null, $label = null, $class='uls-link' ){
         // instance the atribute
-        $translation_url = "#";
+        $translation_url = "";
 
         if ($post_id == null) {
-                if (is_home() || is_front_page() || is_archive() || is_search() || is_author() || is_category() || is_tag() || is_date()) {
+                if (is_home() || is_front_page() || is_archive() || is_author() || is_category() || is_tag() || is_date()) {
                         $url = uls_get_browser_url();
-                        $translation_url = uls_get_url_translated($url, $language);
-                }
-                else if (is_search()) {
-                        $url = get_home_url();
-                        $url .= "?s=".get_search_query();
                         $translation_url = uls_get_url_translated($url, $language);
                 }
         } else {
@@ -94,6 +89,7 @@ function uls_get_link($post_id = null, $language = null, $label = null, $class='
 
         $title = get_the_title($translation_id);
         }
+        var_dump($translation_url);
   
         if (!empty($_GET)) {
                 $translation_url .= "?";
