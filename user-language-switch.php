@@ -263,60 +263,58 @@ function uls_get_site_language($side = 'frontend'){
 }
 
 /**
- * This function check if the redirection based on the browser language is enabled. If it is and the user is in the home page, then the user is redirected to the home page with the specified language.
+ * This function check if the redirection based on the browser language is enabled. If it is add cookies to manage language
  *
  * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects the user.
  */
 function uls_redirect_by_browser_language(){
-  $options = uls_get_options();
-  if ( !isset($options['use_browser_language_to_redirect_visitors']) || !$options['use_browser_language_to_redirect_visitors'] )
-    return false;
+        $options = uls_get_options();
+        if ( !isset($options['use_browser_language_to_redirect_visitors']) || !$options['use_browser_language_to_redirect_visitors'] )
+                return false;
 
-  $type = 'frontend';
-  $url = uls_get_browser_url();
-  $homeUrl = get_bloginfo('url') . '/';
+        $type = 'frontend';
+        $url = uls_get_browser_url();
+        $homeUrl = get_bloginfo('url') . '/';
 
-  //if user is in the home page
-    //if the redirection is enabled
-    if((!isset($options['user_browser_language_detection']) || $options['user_browser_language_detection']) && "no" != get_user_meta(get_current_user_id(), "uls_{$type}_browser_language", true)){
-      $language = uls_get_user_language_from_browser();
+        //if user is in the home page
+        //if the redirection is enabled
+        if((!isset($options['user_browser_language_detection']) || $options['user_browser_language_detection']) && "no" != get_user_meta(get_current_user_id(), "uls_{$type}_browser_language", true)){
+                //take language from browser setting
+                $language = uls_get_user_language_from_browser();
+                //if there are no language like those enabled on site  or if the browser language is different to the site language return false
+                if($language == false || $language == uls_get_site_language())  
+                        return false;
 
-      //if the browser language is different to the site language
-      if("" != $language && $language != uls_get_site_language()){
 
-        $frontpage_id = get_option( 'page_on_front' ); // get front page id
-        $post_id_translation = uls_get_post_translation_id($frontpage_id, $language); // get page id translation
-        $redirectUrl = $homeUrl; // save this atribute to after check the iformation
+                $frontpage_id = get_option( 'page_on_front' ); // get front page id
+                $post_id_translation = uls_get_post_translation_id($frontpage_id, $language); // get page id translation
+                $redirectUrl = $homeUrl; // save this atribute to after check the iformation
+                // check the post translation if it exits redirect the page
+                if ( $post_id_translation ) {
+                        $homeUrl = get_page_link($post_id_translation); // get url page translation
+                        //redirect to the browser language
+                        $redirectUrl = uls_get_url_translated($homeUrl, $language);
+                }
+                else{
+                        //add the language to the URL
+                        $redirectUrl = uls_get_url_translated($url, $language);
+                }
 
-        // check the post translation if it exits redirect the page
-        if ( $post_id_translation ) {
-          $homeUrl = get_page_link($post_id_translation); // get url page translation
-          //redirect to the browser language
-          $redirectUrl = uls_get_url_translated($homeUrl, $language);
-        }
-        //add the language to the URL
-        else{
-          $redirectUrl = uls_get_url_translated($url, $language);
-        }
+                if($url != $redirectUrl &&  !isset($_COOKIE['uls_home_redirection'])){
+                        //save temporal vars to avoid redirection in the home page again
+                        $time = date_format(new DateTime(), 'Y-m-d H:i');
+                        setcookie('uls_home_redirection', $time, time()+2*60*60); //set a cookie for 2 hour
+                        setcookie('uls_language', $language, time()+2*60*60); //set a cookie for 2 hour
+                }
+                else
+                return false;
 
-        //check if it is the first redirection
-        if(!session_id()) session_start();
-        if($url != $redirectUrl && empty($_SESSION['uls_home_redirection']) && empty($_COOKIE['uls_home_redirection'])){
-          //save temporal vars to avoid redirection in the home page again
-          $time = date_format(new DateTime(), 'Y-m-d H:i');
-          setcookie('uls_home_redirection', $time, time()+2*60*60); //set a cookie for 2 hour
-          $_SESSION['uls_home_redirection'] = $time; //save temporal var in session
-        }
-        else
-          return false;
-
-        //redirect
-        if($url != $redirectUrl){
-          wp_redirect($redirectUrl);
-          exit;
-        }
-      }//browser language different to site language
-    }//redirection enabled
+                //redirect
+                if($url != $redirectUrl){
+                        wp_redirect($redirectUrl);
+                        exit;
+                }
+        }//redirection enabled
 
   return false;
 }
@@ -356,46 +354,26 @@ function uls_redirect_by_languange_redundancy(){
  * If the language of the current page is not the same of the user language neither the site language, then the user is redirected to the URL containing the language flag. It is to avoid SEO problems(multiple URLs to the same content).
  */
 function uls_redirect_by_page_language(){
-  //if user is in an admin area, then don't redirect
-  if(is_admin()) return;
+        //if user is in an admin area, then don't redirect
+        if(is_admin()) return;
 
-  //get the id of the current page
-  $url = uls_get_browser_url();
+        //get the id of the current page
+        $url = uls_get_browser_url();
   
-  $redirectUrl = uls_get_redirect_url($url);
-
-  if($redirectUrl != $url){
-        wp_redirect($redirectUrl);
-        exit;
-  }
-}
-
-function uls_get_redirect_url($url)
-{
         $id = url_to_postid($url);
-
-        //if the page has an id
-        if(0 < $id) {
-                //get the language of the page
-                $postLanguage = uls_get_post_language($id);
-
-                //if the page has a language
-                if(!empty($postLanguage)) {
-                        return uls_get_url_translated($url, $postLanguage);
-                }
-        }
-        //get the language from URL
-        $urlLanguage = uls_get_user_language_from_url();
-        //get the language from the site
-        $siteLanguage = uls_get_site_language();
-                        
-        if(empty($urlLanguage)) {
-                return uls_get_url_translated($url, $siteLanguage);
+        
+        if(isset($_COOKIE['uls_language'])) {
+                //take language from cookie
+                $redirectUrl = uls_get_url_translated($url, $_COOKIE['uls_language']);
         } else {
-                return uls_get_url_translated($url, $urlLanguage);
+                //take language from default on site
+                $redirectUrl = uls_get_url_translated($url, uls_get_site_language());
         }
-  
-  return $url;
+
+        if($redirectUrl != $url){
+                wp_redirect($redirectUrl);
+                exit;
+        }
 }
 
 /**

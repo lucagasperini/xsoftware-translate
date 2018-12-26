@@ -97,9 +97,9 @@ function uls_get_link($post_id = null, $language = null, $label = null, $class='
   }
 
   if(null == $label)
-    return '<a class="' . $class . '" href="' . $translation_url . '" >' . $title . '</a>';
+    return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $title . '</a>';
   else
-    return '<a class="' . $class . '" href="' . $translation_url . '" >' . $label . '</a>';
+    return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $label . '</a>';
 }
 /**
  * Add shortcode to get link.

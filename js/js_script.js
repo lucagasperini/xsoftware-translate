@@ -48,3 +48,9 @@ function uls_getUrlVars() {
     });
     return vars;
 }
+
+function cookie_language_changed(lang) {
+        var date = new Date();
+        date.setTime(date.getTime()+2*60*60*1000);
+        document.cookie = 'uls_language'+"="+lang+"; expires="+date.toGMTString()+"; path=/";
+}
