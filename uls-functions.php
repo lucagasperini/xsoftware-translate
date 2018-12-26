@@ -89,7 +89,6 @@ function uls_get_link($post_id = null, $language = null, $label = null, $class='
 
         $title = get_the_title($translation_id);
         }
-        var_dump($translation_url);
   
         if (!empty($_GET)) {
                 $translation_url .= "?";
