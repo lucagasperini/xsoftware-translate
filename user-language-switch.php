@@ -46,7 +46,6 @@ include 'uls-functions.php';
 add_action('init', 'uls_init_plugin');
 function uls_init_plugin(){
   if(is_admin()) return;
-  $admin="10";
   //load translation
   $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
   load_plugin_textdomain( 'user-language-switch', false, $plugin_dir );
@@ -61,7 +60,7 @@ function uls_init_plugin(){
   $uls_link_filter_flag = true;
 
   //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language. It is done only the first time that the user visits the website in a PHP session and if the user is visiting the home page.
-  //uls_redirect_by_browser_language();
+  uls_redirect_by_browser_language();
 
   //if the current page language is not the same of the user or site language, then add the language flag to the URL
   uls_redirect_by_page_language();
@@ -286,7 +285,6 @@ function uls_redirect_by_browser_language(){
       if("" != $language && $language != uls_get_site_language()){
 
         $frontpage_id = get_option( 'page_on_front' ); // get front page id
-        var_dump($frontpage_id);
         $post_id_translation = uls_get_post_translation_id($frontpage_id, $language); // get page id translation
         $redirectUrl = $homeUrl; // save this atribute to after check the iformation
 
@@ -298,7 +296,6 @@ function uls_redirect_by_browser_language(){
         }
         //add the language to the URL
         else{
-        var_dump($language);
           $redirectUrl = uls_get_url_translated($url, $language);
         }
 
