@@ -32,7 +32,6 @@ define( 'ULS_PLUGIN_NAME', plugin_basename(__FILE__) );
 define( 'ULS_FILE_PATH', __FILE__ );
 
 require_once 'uls-options.php';
-require_once 'uls-rewrite-rules.php';
 require_once 'codes.php';
 include 'uls-functions.php';
 
