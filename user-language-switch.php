@@ -384,6 +384,8 @@ function uls_get_url_translated($url, $language = NULL)
                 return $offset;
                 
         $page_id = url_to_postid($url);
+        if($page_id == 0)
+                return $url;
         $translation_id = uls_get_post_translation_id($page_id, $language);
         $offset = get_permalink($translation_id);
                 
