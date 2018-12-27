@@ -196,23 +196,6 @@ class ULS_Options{
         'uls_tabs_language_filter',
         $options);
     }
-    //create calification section
-    add_settings_section('uls_calification_section',
-      __('Rate it!','user-language-switch'),
-      'ULS_Options::create_calification_section',
-      'uls-settings-page');
-
-    //create section for collaboration
-    add_settings_section('uls_collaboration_section',
-      __('Collaborate','user-language-switch'),
-      'ULS_Options::create_collaboration_section',
-      'uls-settings-page');
-
-    //create about section
-    add_settings_section('uls_about_section',
-      __('About','user-language-switch'),
-      'ULS_Options::create_about_section',
-      'uls-settings-page');
   }
 
   /**
@@ -631,42 +614,6 @@ class ULS_Options{
    }
 
    /**
-    * Create the section to collaborate with the development.
-    */
-   static function create_collaboration_section(){
-      ?>
-      <div class="section-inside"><p><?php printf(__('You can collaborate with the development of this plugin, please submit your collaboration to %s or send us any suggestion or bug notification to %s.', 'user-language-switch'), '<a target="_blank" href="https://github.com/Webilop/user-language-switch">' . __('the respository of the plugin in Github', 'user-language-switch') . '</a>', '<a href="mailto:support@webilop.com">support@webilop.com</a>'); ?></p></div>
-      <?php
-   }
-
-   /**
-    * Create the section to collaborate with the development.
-    */
-   static function create_calification_section(){
-      ?>
-      <div class="section-inside"><p><?php _e('If you like this plugin please'); ?> <a title="rate it" href="https://wordpress.org/support/view/plugin-reviews/user-language-switch" target="_blank">leave us a rating</a>. In advance, thanks from Webilop team! &nbsp;
-        <span class="rating">
-          <input type="radio" class="rating-input"
-              id="rating-input-1-5" name="rating-input-1" onclick="window.open('https://wordpress.org/support/view/plugin-reviews/user-language-switch')">
-          <label for="rating-input-1-5" class="rating-star"></label>
-          <input type="radio" class="rating-input"
-              id="rating-input-1-4" name="rating-input-1" onclick="window.open('https://wordpress.org/support/view/plugin-reviews/user-language-switch')">
-          <label for="rating-input-1-4" class="rating-star"></label>
-          <input type="radio" class="rating-input"
-              id="rating-input-1-3" name="rating-input-1" onclick="window.open('https://wordpress.org/support/view/plugin-reviews/user-language-switch')">
-          <label for="rating-input-1-3" class="rating-star"></label>
-          <input type="radio" class="rating-input"
-              id="rating-input-1-2" name="rating-input-1" onclick="window.open('https://wordpress.org/support/view/plugin-reviews/user-language-switch')">
-          <label for="rating-input-1-2" class="rating-star"></label>
-          <input type="radio" class="rating-input"
-              id="rating-input-1-1" name="rating-input-1" onclick="window.open('https://wordpress.org/support/view/plugin-reviews/user-language-switch')">
-          <label for="rating-input-1-1" class="rating-star"></label>
-        </span>
-      </p></div>
-      <?php
-   }
-
-   /**
     * Create the section tabs information.
     */
    static function create_tabs_information_section($options){
@@ -684,18 +631,6 @@ class ULS_Options{
       ?>
       <div><p><?php echo $description; ?></p></div>
       <?php
-   }
-
-   /**
-    * Create the section to collaborate with the development.
-    */
-   static function create_about_section(){
-    ?>
-    <div class="section-inside">
-    <p><strong>User Language Switch </strong><?php _e('was developed by ', 'user-language-switch');?><a title="Webilop. web and mobile development" href="http://www.webilop.com" target="_blank">Webilop</a>.</p>
-    <p><?php _e('Webilop is a company focused on web and mobile solutions. We are experts customizing themes and building plugins in WordPress. We can help you with your website, contact us at ', 'user-language-switch');?><a href="mailto:contact@webilop.com">contact@webilop.com</a>.</p>
-    </div>
-    <?php
    }
 
    /**
