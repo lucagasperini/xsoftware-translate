@@ -61,13 +61,7 @@ function uls_init_plugin(){
 
   //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language. It is done only the first time that the user visits the website in a PHP session and if the user is visiting the home page.
   uls_redirect_by_browser_language();
-
-  //if the current page language is not the same of the user or site language, then add the language flag to the URL
-  uls_redirect_by_page_language();
-
-  //if the URL contains the language and it is the same of the site language or the user langauge saved, then remove the language from the URL.
-  uls_redirect_by_languange_redundancy();
-
+  
   //reset flags
   $uls_permalink_convertion = false;
   $uls_link_filter_flag = false;
@@ -232,22 +226,8 @@ function uls_get_user_language_from_browser(){
  * @return string language code. If there isn't a language in the URL or user hasn't set it, then default language is returned.
  */
 function uls_get_user_language($only_lang = false){
-  //get language from URL
-  $language = uls_get_user_language_from_url($only_lang);
 
-  //get the language from user preferences
-  if( empty($language) ){
-    $language = uls_get_user_saved_language();
-  }
-
-  //remove location
-  if(!empty($language) && $only_lang){
-    $pos = strpos($language, '_');
-      if(false !== $pos)
-        return substr($language, 0, $pos);
-  }
-
-  return $language;
+  return isset($_COOKIE['uls_language']) ? $_COOKIE['uls_language'] :  uls_get_site_language();
 }
 
 /**
@@ -268,112 +248,32 @@ function uls_get_site_language($side = 'frontend'){
  * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects the user.
  */
 function uls_redirect_by_browser_language(){
-        $options = uls_get_options();
-        if ( !isset($options['use_browser_language_to_redirect_visitors']) || !$options['use_browser_language_to_redirect_visitors'] )
-                return false;
+        //$options = uls_get_options();
+        /*if ( !isset($options['use_browser_language_to_redirect_visitors']) || !$options['use_browser_language_to_redirect_visitors'] )
+                return false;*/
 
         $type = 'frontend';
         $url = uls_get_browser_url();
-        $homeUrl = get_bloginfo('url') . '/';
 
         //if user is in the home page
         //if the redirection is enabled
-        if((!isset($options['user_browser_language_detection']) || $options['user_browser_language_detection']) && "no" != get_user_meta(get_current_user_id(), "uls_{$type}_browser_language", true)){
-                //take language from browser setting
-                $language = uls_get_user_language_from_browser();
-                //if there are no language like those enabled on site  or if the browser language is different to the site language return false
-                if($language == false || $language == uls_get_site_language())  
-                        return false;
-
-
-                $frontpage_id = get_option( 'page_on_front' ); // get front page id
-                $post_id_translation = uls_get_post_translation_id($frontpage_id, $language); // get page id translation
-                $redirectUrl = $homeUrl; // save this atribute to after check the iformation
-                // check the post translation if it exits redirect the page
-                if ( $post_id_translation ) {
-                        $homeUrl = get_page_link($post_id_translation); // get url page translation
-                        //redirect to the browser language
-                        $redirectUrl = uls_get_url_translated($homeUrl, $language);
-                }
-                else{
-                        //add the language to the URL
-                        $redirectUrl = uls_get_url_translated($url, $language);
-                }
-
-                if($url != $redirectUrl &&  !isset($_COOKIE['uls_home_redirection'])){
-                        //save temporal vars to avoid redirection in the home page again
-                        $time = date_format(new DateTime(), 'Y-m-d H:i');
-                        setcookie('uls_home_redirection', $time, time()+2*60*60); //set a cookie for 2 hour
-                        setcookie('uls_language', $language, time()+2*60*60); //set a cookie for 2 hour
-                }
-                else
+        //if((!isset($options['user_browser_language_detection']) || $options['user_browser_language_detection']) && "no" != get_user_meta(get_current_user_id(), "uls_{$type}_browser_language", true)){
+        
+        //take language from browser setting
+        $language = uls_get_user_language_from_browser();
+        //if there are no language like those enabled on site  or if the browser language is different to the site language return false
+        if($language == false || $language == uls_get_site_language())  
                 return false;
 
-                //redirect
-                if($url != $redirectUrl){
-                        wp_redirect($redirectUrl);
-                        exit;
-                }
-        }//redirection enabled
+        $redirectUrl = uls_get_url_translated($url, $language);
+        
+        if($url != $redirectUrl &&  !isset($_COOKIE['uls_language'])){
+                //save temporal vars to avoid redirection in the home page again
+                setcookie('uls_language', $language, time()+2*60*60); //set a cookie for 2 hour
+        }
+        //}//redirection enabled
 
   return false;
-}
-
-/**
- * if the URL contains the language and it is the same of the site language or the user langauge saved, then remove the language from the URL using a redirection to the page.
- */
-function uls_redirect_by_languange_redundancy(){
-  //if user is in an admin area, then don't redirect
-  if(is_admin()) return;
-
-  //get the language from URL
-  $urlLanguage = uls_get_user_language_from_url();
-  if(false == $urlLanguage) return;
-
-  //get the language from the site
-  $siteLanguage = uls_get_user_saved_language();
-  if(empty($siteLanguage))
-    $siteLanguage = uls_get_site_language();
-
-  //if the language of the site is the same of the language in the URL
-  if($siteLanguage == $urlLanguage){
-    //get the id of the current page
-    $url = uls_get_browser_url();
-
-    //get the URL without the code language
-    $redirectUrl = uls_get_url_translated($url, $siteLanguage);
-
-    if($redirectUrl != $url){
-      wp_redirect($redirectUrl);
-      exit;
-    }
-  }
-}
-
-/**
- * If the language of the current page is not the same of the user language neither the site language, then the user is redirected to the URL containing the language flag. It is to avoid SEO problems(multiple URLs to the same content).
- */
-function uls_redirect_by_page_language(){
-        //if user is in an admin area, then don't redirect
-        if(is_admin()) return;
-
-        //get the id of the current page
-        $url = uls_get_browser_url();
-  
-        $id = url_to_postid($url);
-        
-        if(isset($_COOKIE['uls_language'])) {
-                //take language from cookie
-                $redirectUrl = uls_get_url_translated($url, $_COOKIE['uls_language']);
-        } else {
-                //take language from default on site
-                $redirectUrl = uls_get_url_translated($url, uls_get_site_language());
-        }
-
-        if($redirectUrl != $url){
-                wp_redirect($redirectUrl);
-                exit;
-        }
 }
 
 /**
@@ -609,34 +509,19 @@ function uls_link_filter($post_url, $post = null){
 /**
  * This function add the language flag in the url.
  */
-function uls_get_url_translated($url, $language, $type = 'prefix', $remove_default_language = true){
+function uls_get_url_translated($url, $language = NULL, $type = 'prefix', $remove_default_language = true){
    if(empty($url))
       return null;
 
    //activate flag to avoid translations and get the real URL of the blog
    global $uls_permalink_convertion;
    $uls_permalink_convertion = true;
-
-   /* REMOVED BECAUSE ERASE $_GET VARIABLE OF DEFAULT LANGUAGE
-   
-   //if URL will omit default language
-   if($remove_default_language){
-      //if language is the same for the user
-      if(is_user_logged_in() && $language == uls_get_user_saved_language())
-         $language = '';
-      //if language is the default language
-      elseif(! is_user_logged_in() && $language == uls_get_site_language())
-         $language = '';
-   }
-   */
    
    //add language to the url
    switch($type){
       case 'query_var':
          $parts = parse_url($url);
          if(empty($parts['query'])){
-            if(!empty($language))
-               $parts['query'] = 'lang=' . $language;
             $url = $parts['scheme'] . '://' . $parts['host'] . (empty($parts['port']) ? '' : ':' . $parts['port']) . (empty($parts['path']) ? '' : $parts['path']) . (empty($parts['query']) ? '' : '?' . $parts['query']) . (empty($parts['fragment']) ? '' : '#' . $parts['fragment']);
             break;
          }
@@ -645,8 +530,6 @@ function uls_get_url_translated($url, $language, $type = 'prefix', $remove_defau
          foreach($query_parts as $var){
             $var_value = explode('=',$var);
             if($var_value[0] == 'lang'){
-               if(!empty($language))
-                  $new_query_parts []= 'lang=' . $language;
             }
             else
                $new_query_parts []= $var;
@@ -661,10 +544,6 @@ function uls_get_url_translated($url, $language, $type = 'prefix', $remove_defau
       default:
          $parts = parse_url($url);
          $blog_parts = parse_url(get_bloginfo('url'));
-         if(empty($parts['path']) && !empty($language)){
-            $parts['path'] = '/' . $language . '/';
-         }
-         else{
             //split path to detect if it contains a language flag already
             if(empty($blog_parts['path'])){
                $parts['path'] = isset($parts['path']) ? $parts['path'] : '/';
@@ -675,8 +554,6 @@ function uls_get_url_translated($url, $language, $type = 'prefix', $remove_defau
                   unset($path_parts[1]);
                   $parts['path'] = implode('/', $path_parts);
                }
-               if(!empty($language))
-                  $parts['path'] = '/' . $language . $parts['path'];
             }
             else {
                $path_parts = explode('/', str_replace($blog_parts['path'], '', $parts['path']));
@@ -684,12 +561,8 @@ function uls_get_url_translated($url, $language, $type = 'prefix', $remove_defau
                if(!empty($path_parts) && count($path_parts) > 1 && in_array($path_parts[1], $available_languages)){
                   unset($path_parts[1]);
                }
-               if(empty($language))
                   $parts['path'] = $blog_parts['path'] . implode('/', $path_parts);
-               else
-                  $parts['path'] = $blog_parts['path'] . '/' . $language . implode('/', $path_parts);
             }
-         }
          //if the URL is a relative URL
          if(empty($parts['scheme']) && empty($parts['host'])){
            // TO-DO: How to handle relative URLs if the site is not hosted in the root folder of the domain
