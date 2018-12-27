@@ -247,16 +247,8 @@ function uls_get_site_language($side = 'frontend'){
  * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects the user.
  */
 function uls_redirect_by_browser_language(){
-        //$options = uls_get_options();
-        /*if ( !isset($options['use_browser_language_to_redirect_visitors']) || !$options['use_browser_language_to_redirect_visitors'] )
-                return false;*/
 
-        $type = 'frontend';
         $url = uls_get_browser_url();
-
-        //if user is in the home page
-        //if the redirection is enabled
-        //if((!isset($options['user_browser_language_detection']) || $options['user_browser_language_detection']) && "no" != get_user_meta(get_current_user_id(), "uls_{$type}_browser_language", true)){
         
         //take language from browser setting
         $language = uls_get_user_language_from_browser();
@@ -267,10 +259,10 @@ function uls_redirect_by_browser_language(){
         $redirectUrl = uls_get_url_translated($url, $language);
         
         if($url != $redirectUrl &&  !isset($_COOKIE['uls_language'])){
-                //save temporal vars to avoid redirection in the home page again
                 setcookie('uls_language', $language, time()+2*60*60); //set a cookie for 2 hour
+                wp_redirect($redirectUrl);
+                exit;
         }
-        //}//redirection enabled
 
   return false;
 }

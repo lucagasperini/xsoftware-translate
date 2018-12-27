@@ -16,7 +16,6 @@ class ULS_Options{
       'tab_position_language_switch' => 'RM',
       'fixed_position_language_switch' => true,
       'enable_translation_sidebars_language_switch' => true,
-      'use_browser_language_to_redirect_visitors' => true,
       'languages_filter_enable' => array('post' => 'post', 'page' => 'page'),
    );
 
@@ -121,14 +120,6 @@ class ULS_Options{
       add_settings_field($options['input_name'],
         __('Default language for admin side','user-language-switch'),
         'ULS_Options::create_language_selector_input',
-        'uls-settings-page',
-        'uls_general_settings_section',
-        $options);
-
-      $options['input_name'] = 'use_browser_language_to_redirect_visitors';
-      add_settings_field($options['input_name'],
-        __('Use browser language to redirect visitors','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -297,7 +288,6 @@ class ULS_Options{
       $options['activate_tab_language_switch']   =   isset($_POST['activate_tab_language_switch']);
       $options['fixed_position_language_switch'] =   isset($_POST['fixed_position_language_switch']);
       $options['enable_translation_sidebars_language_switch'] = isset($_POST['enable_translation_sidebars_language_switch']);
-      $options['use_browser_language_to_redirect_visitors']   = isset($_POST['use_browser_language_to_redirect_visitors']);
       $options['position_menu_language']           =   $ulsPostionMenuLanguage;
       $options['available_language']               =   $ulsAvailableLanguage;
       $options['uls_available_language_new_flags'] =   $ulsAvailableLanguageFlags;
