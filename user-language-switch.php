@@ -209,7 +209,7 @@ function uls_get_user_language_from_browser(){
  *
  * @return string language code. If there isn't a language in the URL or user hasn't set it, then default language is returned.
  */
-function uls_get_user_language($only_lang = false){
+function uls_get_user_language(){
 
   return isset($_COOKIE['uls_language']) ? $_COOKIE['uls_language'] :  uls_get_site_language();
 }
@@ -231,8 +231,8 @@ function uls_get_site_language($side = 'frontend'){
  *
  * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects the user.
  */
-function uls_redirect_by_browser_language(){
-
+function uls_redirect_by_browser_language()
+{
         $url = uls_get_browser_url();
         
         //take language from browser setting
@@ -242,13 +242,15 @@ function uls_redirect_by_browser_language(){
                 return false;
 
         $redirectUrl = uls_get_url_translated($url, $language);
+        if($redirectUrl == false)
+                return false;
         
-        if($url != $redirectUrl &&  !isset($_COOKIE['uls_language'])){
-                setcookie('uls_language', $language, time()+2*60*60); //set a cookie for 2 hour
-                wp_redirect($redirectUrl);
-                exit;
+        if(!isset($_COOKIE['uls_language'])){
+                setcookie('uls_language', $language, time()+2*60*60, "/"); //set a cookie for 2 hour
         }
-
+        if ($url != $redirectUrl) {
+                wp_redirect($redirectUrl);
+        }
   return false;
 }
 
@@ -422,7 +424,7 @@ function uls_link_filter($post_url, $post = null){
 
    //check if page donesn't require a post to do translation, it only uses URL
    if(null == $post || (is_object($post) && empty($post->ID))){
-      $post_url = uls_get_url_translated($post_url, $url_language, $options["url_type"]);
+      $post_url = uls_get_url_translated($post_url, $url_language);
 
       //clean flag to control infinite recursion
       $uls_link_filter_flag = false;
@@ -454,11 +456,11 @@ function uls_link_filter($post_url, $post = null){
       //get the translation of the post
       $translation_id = uls_get_post_translation_id($post_id, $url_language);
       if($translation_id == $post_id)
-         $post_url = uls_get_url_translated($post_url, $url_language, $options["url_type"]);
+         $post_url = uls_get_url_translated($post_url, $url_language);
       elseif(false !== $translation_id)
          $post_url = uls_get_url_translated(get_permalink($translation_id), $url_language);
       else
-         $post_url = uls_get_url_translated($post_url, $url_language, $options["url_type"]);
+         $post_url = uls_get_url_translated($post_url, $url_language);
    }
    //if there is no a language in the URL, get the correct URL for the post
    else{
@@ -483,81 +485,21 @@ function uls_link_filter($post_url, $post = null){
 }
 
 /**
- * This function add the language flag in the url.
+ * Get the page of traslated url.
  */
-function uls_get_url_translated($url, $language = NULL, $type = 'prefix', $remove_default_language = true){
-   if(empty($url))
-      return null;
-
-   //activate flag to avoid translations and get the real URL of the blog
-   global $uls_permalink_convertion;
-   $uls_permalink_convertion = true;
-   
-   //add language to the url
-   switch($type){
-      case 'query_var':
-         $parts = parse_url($url);
-         if(empty($parts['query'])){
-            $url = $parts['scheme'] . '://' . $parts['host'] . (empty($parts['port']) ? '' : ':' . $parts['port']) . (empty($parts['path']) ? '' : $parts['path']) . (empty($parts['query']) ? '' : '?' . $parts['query']) . (empty($parts['fragment']) ? '' : '#' . $parts['fragment']);
-            break;
-         }
-         $query_parts = explode('&', $parts['query']);
-         $new_query_parts = array();
-         foreach($query_parts as $var){
-            $var_value = explode('=',$var);
-            if($var_value[0] == 'lang'){
-            }
-            else
-               $new_query_parts []= $var;
-         }
-         $parts['query'] = implode('&', $new_query_parts);
-         $url = $parts['scheme'] . '://' . $parts['host'] . (empty($parts['port']) ? '' : ':' . $parts['port']) . (empty($parts['path']) ? '' : $parts['path']) . (empty($parts['query']) ? '' : '?' . $parts['query']) . (empty($parts['fragment']) ? '' : '#' . $parts['fragment']);
-         break;
-
-      case 'subdomain':
-         break;
-
-      default:
-         $parts = parse_url($url);
-         $blog_parts = parse_url(get_bloginfo('url'));
-            //split path to detect if it contains a language flag already
-            if(empty($blog_parts['path'])){
-               $parts['path'] = isset($parts['path']) ? $parts['path'] : '/';
-               $path_parts = explode('/', $parts['path']);
-               $available_languages = uls_get_available_languages();
-
-               if( in_array($path_parts[1], $available_languages) ){
-                  unset($path_parts[1]);
-                  $parts['path'] = implode('/', $path_parts);
-               }
-            }
-            else {
-               $path_parts = explode('/', str_replace($blog_parts['path'], '', $parts['path']));
-               $available_languages = uls_get_available_languages();
-               if(!empty($path_parts) && count($path_parts) > 1 && in_array($path_parts[1], $available_languages)){
-                  unset($path_parts[1]);
-               }
-                  $parts['path'] = $blog_parts['path'] . implode('/', $path_parts);
-            }
-         //if the URL is a relative URL
-         if(empty($parts['scheme']) && empty($parts['host'])){
-           // TO-DO: How to handle relative URLs if the site is not hosted in the root folder of the domain
-         }
-         else{
-           $url = $parts['scheme'] . '://' . $parts['host']
-             . (empty($parts['port']) ? '' : ':' . $parts['port'])
-             . (empty($parts['path']) ? '' : $parts['path'])
-             . (empty($parts['query']) ? '' : '?' . $parts['query'])
-             . (empty($parts['fragment']) ? '' : '#' . $parts['fragment']);
-         }
-
-         break;
-   }
-   //reset flag
-   $uls_permalink_convertion = false;
-
-   return $url;
+function uls_get_url_translated($url, $language = NULL)
+{
+        $offset = NULL;
+        if(empty($url))
+                return $offset;
+                
+        $page_id = url_to_postid($url);
+        $translation_id = uls_get_post_translation_id($page_id, $language);
+        $offset = get_permalink($translation_id);
+                
+        return $offset;
 }
+
 
 /**
  * This function creates an HTML select input with the available languages for the site.
