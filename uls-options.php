@@ -283,10 +283,21 @@ class ULS_Options{
   * Add entries in menu sidebar in back end.
   */
   static function register_menu(){
-    add_options_page( __('User Language Switch','user-language-switch'),
+        global $menu;
+        $menuExist = false;
+        foreach($menu as $item) {
+                if(strtolower($item[0]) == strtolower('XSoftware')) {
+                        $menuExist = true;
+                }
+        }
+                
+        if(!$menuExist)
+                add_menu_page( 'XSoftware', 'XSoftware', 'manage_options', 'xsoftware', 'ULS_Options::create_settings_page' );
+                
+    add_submenu_page('xsoftware', __('User Language Switch','user-language-switch'),
       __('User Language Switch','user-language-switch'),
       'manage_options', 'uls-settings-page',
-      'ULS_Options::create_settings_page' );
+      'ULS_Options::create_settings_page');
 
   }
   /**

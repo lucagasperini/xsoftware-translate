@@ -23,9 +23,7 @@ include 'uls-functions.php';
 /**
  * This function intis the plugin. It check the language in the URL, the language in the browser and the language in the user preferences to redirect the user to the correct page with translations.
  *
- * 1. This function first check the language configured in the user browser and redirects the user to the correct language version of the website. It is done only the first time that the user visits the website in a PHP session and if the user is visiting the home page.
- * 2. If the current page language is not the same of the user or site language, then add the language flag to the URL.
- * 3. If the URL contains the language and it is the same of the site langauge or to the user language saved, then remove the language from the URL
+ * 1. This function first check the language configured in the user browser and redirects the user to the correct language version of the website.
  */
 add_action('init', 'uls_init_plugin');
 function uls_init_plugin(){
@@ -43,7 +41,7 @@ function uls_init_plugin(){
   global $uls_link_filter_flag;
   $uls_link_filter_flag = true;
 
-  //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language. It is done only the first time that the user visits the website in a PHP session and if the user is visiting the home page.
+  //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
   uls_redirect_by_browser_language();
   
   //reset flags
