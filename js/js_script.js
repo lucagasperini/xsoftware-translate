@@ -54,3 +54,7 @@ function cookie_language_changed(lang) {
         date.setTime(date.getTime()+2*60*60*1000);
         document.cookie = 'uls_language'+"="+lang+"; expires="+date.toGMTString()+"; path=/";
 }
+
+function googleTranslateElementInit() {
+        new google.translate.TranslateElement('google_translate_element');
+}

@@ -27,29 +27,35 @@ include 'uls-functions.php';
  */
 add_action('init', 'uls_init_plugin');
 function uls_init_plugin(){
-  if(is_admin()) return;
-  //load translation
-  $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
-  load_plugin_textdomain( 'user-language-switch', false, $plugin_dir );
-  
+        if(is_admin()) return;
+        //load translation
+        $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
+        load_plugin_textdomain( 'user-language-switch', false, $plugin_dir );
+        
+        //init flag of permalink convertion to true. When this flag is false, then don't try to get translations when is generating permalinks
+        global $uls_permalink_convertion;
+        $uls_permalink_convertion = true;
 
-  //init flag of permalink convertion to true. When this flag is false, then don't try to get translations when is generating permalinks
-  global $uls_permalink_convertion;
-  $uls_permalink_convertion = true;
+        //init flat for uls link filter function. When this flag is true is because it is running a process to generate a link with translations, then it abort any try to get a translation over a translation, in this way it doesn't do an infinite loop.
+        global $uls_link_filter_flag;
+        $uls_link_filter_flag = true;
+        
+        //take language from browser setting
+        $language = uls_get_user_language_from_browser();
+        if(in_array($language, uls_get_available_languages())) {
+                uls_set_cookie_language($language);
+                //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
+                uls_redirect_by_language($language);
+        } else {
+                uls_translate_by_google();
+        }
+        
+        //reset flags
+        $uls_permalink_convertion = false;
+        $uls_link_filter_flag = false;
 
-  //init flat for uls link filter function. When this flag is true is because it is running a process to generate a link with translations, then it abort any try to get a translation over a translation, in this way it doesn't do an infinite loop.
-  global $uls_link_filter_flag;
-  $uls_link_filter_flag = true;
-
-  //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
-  uls_redirect_by_browser_language();
-  
-  //reset flags
-  $uls_permalink_convertion = false;
-  $uls_link_filter_flag = false;
-
-  //init session to detect if you are in the home page by "first time"
-  if(!session_id()) session_start();
+        //init session to detect if you are in the home page by "first time"
+        if(!session_id()) session_start();
 }
 
 /**
@@ -132,9 +138,13 @@ function uls_get_user_saved_language($only_lang = false, $type = null){
  * @return mixed it returns a string containing a language code or false if there isn't any language detected.
  */
 function uls_get_user_language_from_browser(){
-  if(isset($_SERVER["HTTP_ACCEPT_LANGUAGE"])){
+  if(!isset($_SERVER["HTTP_ACCEPT_LANGUAGE"])){
+        return false;
+  }
     //split the header languages
     $browserLanguages = explode(',', $_SERVER["HTTP_ACCEPT_LANGUAGE"]);
+    
+    
 
     //parse each language
     $parsedLanguages = array();
@@ -157,9 +167,9 @@ function uls_get_user_language_from_browser(){
         );
       }
     }
-
     //get the languages activated in the site
     $validLanguages = uls_get_available_languages();
+    
     //validate the languages
     $max = 0.0;
     $maxLang = false;
@@ -195,10 +205,9 @@ function uls_get_user_language_from_browser(){
     }
 
     return $maxLang;
-  }
-
-  return false;
 }
+
+
 
 /**
  * This function gets the language from the URL, if there is no language in the URL, then it gets language from settings saved by the user in the back-end side. If there isn't a language in the URL or user hasn't set it, then default language of the website is used.
@@ -224,32 +233,43 @@ function uls_get_site_language($side = 'frontend'){
    return isset($options["default_{$side}_language"]) ? $options["default_{$side}_language"] : false;
 }
 
+function uls_translate_by_google()
+{
+        $options = uls_get_options();
+        if($options['use_google_translate'] == false)
+                return;
+                
+        wp_enqueue_script('uls_google_translate_script', "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+        
+}
+
+function uls_set_cookie_language($language)
+{
+        if($language == NULL || $language == false)  
+                return NULL;
+                
+        if(!isset($_COOKIE['uls_language'])){
+                setcookie('uls_language', $language, time()+2*60*60, "/"); //set a cookie for 2 hour
+        }
+}
+
 /**
  * This function check if the redirection based on the browser language is enabled. If it is add cookies to manage language
  *
  * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects the user.
  */
-function uls_redirect_by_browser_language()
+function uls_redirect_by_language($language)
 {
         $url = uls_get_browser_url();
-        
-        //take language from browser setting
-        $language = uls_get_user_language_from_browser();
-        //if there are no language like those enabled on site  or if the browser language is different to the site language return false
-        if($language == false || $language == uls_get_site_language())  
-                return false;
 
         $redirectUrl = uls_get_url_translated($url, $language);
         if($redirectUrl == false)
-                return false;
+                return NULL;
         
-        if(!isset($_COOKIE['uls_language'])){
-                setcookie('uls_language', $language, time()+2*60*60, "/"); //set a cookie for 2 hour
-        }
         if ($url != $redirectUrl) {
                 wp_redirect($redirectUrl);
         }
-  return false;
+        return NULL;
 }
 
 /**
