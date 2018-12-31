@@ -10,10 +10,8 @@ $postId = null;
 if (!is_home() && !is_archive() && !is_search() && !is_404()) {
   $postId = $wp_query->post->ID;
 }
-?>
-  <div id="<?= $shortcode_class;?>">
-  <?php foreach ($languages as $key => $value) : ?>
-    <?php
+  echo "<div id=".$shortcode_class.">";
+foreach ($languages as $key => $value) :
       $content_style = '';
       $tagHtml = ' <img src="'. plugins_url('css/blank.gif', __FILE__) .
       '" style="margin-right:5px;" class="flag_32x32 flag-' .
@@ -42,7 +40,7 @@ if (!is_home() && !is_archive() && !is_search() && !is_404()) {
             Codes::languageCode2CountryCode($value). '" alt="' . $value . '" title="' .
             $key . '" /> ';
       }
-    ?>
-    <div class="tab_flag <?=$grayClass?>" style="<?=$content_style;?>"><?= uls_get_link($postId, $value, $tagHtml); ?></div>
-  <?php endforeach; ?>
-</div>
+    echo "<div class='tab_flag".$grayClass."' style='".$content_style."'>".uls_get_link($postId, $value, $tagHtml)."</div>";
+  endforeach;
+echo "</div>";
+?>
