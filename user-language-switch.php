@@ -43,7 +43,7 @@ function uls_init_plugin(){
         //take language from browser setting
         $language = uls_get_user_language_from_browser();
         if(in_array($language, uls_get_available_languages())) {
-                uls_set_cookie_language($language);
+                $language = uls_cookie_language($language);
                 //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
                 uls_redirect_by_language($language);
         } else {
@@ -243,14 +243,18 @@ function uls_translate_by_google()
         
 }
 
-function uls_set_cookie_language($language)
+function uls_cookie_language($language)
 {
         if($language == NULL || $language == false)  
                 return NULL;
                 
         if(!isset($_COOKIE['uls_language'])){
                 setcookie('uls_language', $language, time()+2*60*60, "/"); //set a cookie for 2 hour
+                return $language;
+        } else {
+                return $_COOKIE['uls_language'];
         }
+        
 }
 
 /**
@@ -268,6 +272,7 @@ function uls_redirect_by_language($language)
         
         if ($url != $redirectUrl) {
                 wp_redirect($redirectUrl);
+                exit;
         }
         return NULL;
 }
