@@ -265,10 +265,13 @@ function uls_cookie_language($language)
 function uls_redirect_by_language($language)
 {
         $url = uls_get_browser_url();
+        $url = strtok($url, '?'); //remove query string if there are
 
         $redirectUrl = uls_get_url_translated($url, $language);
         if($redirectUrl == false)
                 return NULL;
+                
+
         
         if ($url != $redirectUrl) {
                 wp_redirect($redirectUrl);
