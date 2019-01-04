@@ -511,18 +511,6 @@ function uls_get_post_language($id){
   return "";
 }
 
-add_action( 'init', 'uls_initialize_meta_boxes', 9999 );
-
-/**
- * Initialize the metabox class.
- *
- * @return void
- */
-function uls_initialize_meta_boxes() {
-    if( ! class_exists( 'cmb_Meta_Box' ) )
-        require_once(plugin_dir_path( __FILE__ ) . 'init.php');
-}
-
 /**
  * Add meta boxes to select the language an traductions of a post.
  *
