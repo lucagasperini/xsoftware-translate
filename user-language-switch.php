@@ -270,7 +270,7 @@ function uls_redirect_by_language($language)
         $redirectUrl = uls_get_url_translated($url, $language);
         if($redirectUrl == false)
                 return NULL;
-                
+        
         if ($url != $redirectUrl) {
                 wp_redirect($redirectUrl);
                 exit;

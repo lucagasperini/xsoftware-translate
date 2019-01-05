@@ -32,13 +32,22 @@ function uls_get_options(){
  *
  * @return string URL in the browser.
  */
-function uls_get_browser_url(){
-  if(!isset($_SERVER['HTTP_HOST']) || !isset($_SERVER['REQUEST_URI'])) {
-    return false;
-  }
-  $url =(isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"]=="on") ? "https://" : "http://";
-  $url .= $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
-  return $url;
+function uls_get_browser_url()
+{
+
+        if(!isset($_SERVER['HTTP_HOST']) || !isset($_SERVER['REQUEST_URI']))
+                return false;
+        
+        $options = uls_get_options();
+        
+        if((isset($options['automatic_redicted_ssl']) && $options['automatic_redicted_ssl']) || (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"]=="on"))
+                $url = "https://";
+        else
+                $url = "http://";
+                
+        $url .= $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
+        
+        return $url;
 }
 
 /**

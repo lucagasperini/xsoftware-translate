@@ -1,0 +1,4 @@
+errore: loop di reindirizzamenti quando si forza l'uso di https con l'opzione "automatic_redicted_ssl"
+causa: L'errore è dato dal valore delle variabili di wordpress "siteurl" e "home" infatti i permalink vengono forzati in http se queste variabili sono link in http
+risolve: modificare le opzioni di wordpress da wp-admin > Impostazioni > Generali e modificare le righe "WordPress Address (URL)" e "Site Address (URL)"
+link utii: https://wordpress.stackexchange.com/questions/238166/get-permalink-executes-link-without-https
