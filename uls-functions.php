@@ -102,7 +102,7 @@ function uls_get_link($post_id = null, $language = null, $label = null, $class='
         if (!empty($_GET)) {
                 $translation_url .= "?";
                 foreach($_GET as $key => $value)
-                        $translation_url .=  $key . "=" . $value;
+                        $translation_url .=  $key . "=" . $value.'&';
         }
 
         if(null == $label)
