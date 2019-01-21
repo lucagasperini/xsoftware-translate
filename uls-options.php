@@ -2,7 +2,7 @@
 /**
  * This class control plugin settings.
  */
-class ULS_Options{
+class xs_translate_options{
    static private $default_options = array(
       'uls_plugin_version' => '1.5',
       'user_backend_configuration' => true,
@@ -42,7 +42,7 @@ class ULS_Options{
     //register settings
     register_setting('uls_settings',
       'uls_settings',
-      'ULS_Options::validate_settings');
+      'xs_translate_options::validate_settings');
 
     //get options
     $options = get_option('uls_settings');
@@ -50,7 +50,7 @@ class ULS_Options{
     //create about section
     add_settings_section('uls_create_section_tabs',
       '',
-      'ULS_Options::ilc_admin_tabs',
+      'xs_translate_options::ilc_admin_tabs',
       'uls-settings-page');
 
 
@@ -60,13 +60,13 @@ class ULS_Options{
       //create section for registration
       add_settings_section('uls_general_settings_section',
         __('General Settings','user-language-switch'),
-        'ULS_Options::create_general_settings_section',
+        'xs_translate_options::create_general_settings_section',
         'uls-settings-page');
         
         $options['input_name'] = 'automatic_redicted_ssl';
         add_settings_field($options['input_name'],
         __('Enable automatic redicted to ssl connection','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
+        'xs_translate_options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -74,7 +74,7 @@ class ULS_Options{
       $options['input_name'] = 'activate_tab_language_switch';
       add_settings_field($options['input_name'],
         __('Enable flags tab','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
+        'xs_translate_options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -82,7 +82,7 @@ class ULS_Options{
       $options['input_name'] = 'fixed_position_language_switch';
       add_settings_field($options['input_name'],
         __('The tab is always visible in the browser window','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
+        'xs_translate_options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -90,7 +90,7 @@ class ULS_Options{
         $options['input_name'] = 'use_google_translate';
         add_settings_field($options['input_name'],
         __('You want use google translate','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
+        'xs_translate_options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -111,7 +111,7 @@ class ULS_Options{
                                         );
       add_settings_field($options['input_name'],
         __('Tab Position','user-language-switch'),
-        'ULS_Options::create_select_input',
+        'xs_translate_options::create_select_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -119,7 +119,7 @@ class ULS_Options{
       $options['input_name'] = 'tab_color_picker_language_switch';
       add_settings_field($options['input_name'],
         __('Tab Backgorund Color','user-language-switch'),
-        'ULS_Options::create_text_input',
+        'xs_translate_options::create_text_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -128,7 +128,7 @@ class ULS_Options{
       $options['available_language'] = true;
       add_settings_field($options['input_name'],
         __('Default language','user-language-switch'),
-        'ULS_Options::create_language_selector_input',
+        'xs_translate_options::create_language_selector_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -137,7 +137,7 @@ class ULS_Options{
       $options['available_language'] = false;
       add_settings_field($options['input_name'],
         __('Default language for admin side','user-language-switch'),
-        'ULS_Options::create_language_selector_input',
+        'xs_translate_options::create_language_selector_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -145,7 +145,7 @@ class ULS_Options{
       $options['input_name'] = 'enable_translation_sidebars_language_switch';
       add_settings_field($options['input_name'],
         __('Enable translations for sidebars','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
+        'xs_translate_options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -153,14 +153,14 @@ class ULS_Options{
       $options['input_name'] = 'user_frontend_configuration';
       add_settings_field($options['input_name'],
         __('Allow registered users to change the language that user looks the website','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
+        'xs_translate_options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',$options);
 
       $options['input_name'] = 'user_backend_configuration';
       add_settings_field($options['input_name'],
         __('Allow registered users to change the language that user looks the back-end side','user-language-switch'),
-        'ULS_Options::create_checkbox_input',
+        'xs_translate_options::create_checkbox_input',
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
@@ -170,13 +170,13 @@ class ULS_Options{
       $options['input_name'] = 'uls_tabs_menu_language';
       add_settings_section($options['input_name'],
         __('Information','user-language-switch'),
-        'ULS_Options::create_tabs_information_section',
+        'xs_translate_options::create_tabs_information_section',
         'uls-settings-page');
 
       // create menu table configuration
       add_settings_section('table_menu_language',
         '',
-        'ULS_Options::create_table_menu_language',
+        'xs_translate_options::create_table_menu_language',
         'uls-settings-page',
         'uls_tabs_menu_language',
         $options);
@@ -186,13 +186,13 @@ class ULS_Options{
       //create section for registration
       add_settings_section('uls_tabs_available_language',
         __('Information','user-language-switch'),
-        'ULS_Options::create_tabs_information_section',
+        'xs_translate_options::create_tabs_information_section',
         'uls-settings-page');
 
       // create table configuration
       add_settings_section('table_available_language',
         '',
-        'ULS_Options::create_table_available_language',
+        'xs_translate_options::create_table_available_language',
         'uls-settings-page',
         'uls_tabs_available_language',
         $options);
@@ -202,14 +202,14 @@ class ULS_Options{
       $options['input_name'] = 'uls_tabs_language_filter';
       add_settings_section($options['input_name'],
         __('Information','user-language-switch'),
-        'ULS_Options::create_tabs_information_section',
+        'xs_translate_options::create_tabs_information_section',
         'uls-settings-page');
 
       // create menu table configuration
       $options['input_name'] = 'languages_filter_enable';
       add_settings_section('table_language_filter',
         '',
-        'ULS_Options::create_table_language_filter',
+        'xs_translate_options::create_table_language_filter',
         'uls-settings-page',
         'uls_tabs_language_filter',
         $options);
@@ -308,23 +308,8 @@ class ULS_Options{
         add_submenu_page('xsoftware', __('User Language Switch','user-language-switch'),
         __('User Language Switch','user-language-switch'),
         'manage_options', 'uls-settings-page',
-        'ULS_Options::create_settings_page');
+        'xs_translate_options::create_settings_page');
 
-  }
-  /**
-   * function uls_admin_notice_question
-   * this function is to show the message in the admin panel
-   */
-  static function uls_admin_notice_question() {
-  ?>
-    <div class="notice notice-success is-dismissible">
-        <div id="content_question_display">
-          <p><?php _e( 'Would you like to help you to contact a professional translator for your site.', 'user-language-switch' ); ?></p>
-          <button id="uls_answere_traductor_yes" type="button" name="answere_yes" class="button button-primary uls_answere_button">YES</button>
-          <button id="uls_answere_traductor_not" type="button" name="answere_not" class="button button-primary uls_answere_button">NO</button>
-        </div>
-    </div>
-  <?php
   }
 
   /**
@@ -471,7 +456,8 @@ class ULS_Options{
 
     $languages = uls_get_available_languages(false); // get the all languages available in the wp
     $options = get_option('uls_settings'); // get information from DB
-    $available_language = isset($options['available_language']) ? $options['available_language'] : uls_get_available_languages(false); // get the information that actually is in the DB
+    $available_language = isset($options['available_language']) ? $options['available_language'] : uls_get_available_languages(false); 
+    // get the information that actually is in the DB
   wp_enqueue_script( 'uls_languages_js', plugins_url('js/uls-languages-tap.js', __FILE__), array('jquery') );
   ?>
     <table id="menu-locations-table" class="">
@@ -492,16 +478,20 @@ class ULS_Options{
               <input type="checkbox" name="uls_available_language[<?=$lang_name?>]" value="<?=$lang_code?>" <?=$checked?> />
             </td>
             <td>
-                <!--img src="<?= plugins_url("css/blank.gif", __FILE__) ?>" style="margin-right:5px;" class="flag_16x11 flag-<?= strtolower(substr($lang_code, -2))?>" alt="<?= $lang_name ?>" title="<?= $lang_name ?>" /-->
-                <img src="<?= plugins_url("css/blank.gif", __FILE__) ?>" style="margin-right:5px;" class="flag_16x11 flag-<?= Codes::languageCode2CountryCode($lang_code); ?>" alt="<?= $lang_name ?>" title="<?= $lang_name ?>" />
+                <!--img src="<?= plugins_url("css/blank.gif", __FILE__) ?>" style="margin-right:5px;" class="flag_16x11 flag-<?= strtolower(substr($lang_code, 
+-2))?>" alt="<?= $lang_name ?>" title="<?= $lang_name ?>" /-->
+                <img src="<?= plugins_url("css/blank.gif", __FILE__) ?>" style="margin-right:5px;" class="flag_16x11 flag-<?= 
+Codes::languageCode2CountryCode($lang_code); ?>" alt="<?= $lang_name ?>" title="<?= $lang_name ?>" />
                 <span><?= $lang_name; ?></span>
             </td>
             <td>
-              <input type="file" name="uls_available_language_new_flags[<?=$lang_name?>]" value=""  title="<?= __("the default dimension is 32x32 px, it is neccessary to keep the aesthetics"); ?>" />
+              <input type="file" name="uls_available_language_new_flags[<?=$lang_name?>]" value=""  title="<?= __("the default dimension is 32x32 px, it is 
+neccessary to keep the aesthetics"); ?>" />
             </td>
             <td>
               <?php if ( isset($options['uls_available_language_new_flags']) && isset($options['uls_available_language_new_flags'][$lang_name]) ): ?>
-                  <img src="<?= $options['uls_available_language_new_flags'][$lang_name]['url'] ?>" class="optional_flag" alt="<?=$lang_name;?>" title="<?= $lang_name ?>" ></img>
+                  <img src="<?= $options['uls_available_language_new_flags'][$lang_name]['url'] ?>" class="optional_flag" alt="<?=$lang_name;?>" title="<?= 
+$lang_name ?>" ></img>
               <?php endif; ?>
            </td>
             <td>
@@ -631,7 +621,8 @@ class ULS_Options{
     */
    static function create_general_settings_section(){
     ?>
-      <p><?php _e('Configure settings for the language tab that contains flags to change between languages in your website, set default languages for your website, create custom menu translations and activate translations of sidebars to create different sidebars for each language.', 'user-language-switch'); ?></p>
+      <p><?php _e('Configure settings for the language tab that contains flags to change between languages in your website, set default languages for your 
+website, create custom menu translations and activate translations of sidebars to create different sidebars for each language.', 'user-language-switch'); ?></p>
     <?php
    }
 
@@ -641,13 +632,18 @@ class ULS_Options{
    static function create_tabs_information_section($options){
      switch($options['id']){
        case 'uls_tabs_menu_language':
-         $description = __("Assign menus as translations to other menus, first you need to create your menus in Appearance - Menus. If you don't assign a translation for a menu, then pages in the menu are translated individually if they have translations assigned.", 'user-language-switch');
+         $description = __("Assign menus as translations to other menus, first you need to create your menus in Appearance - Menus. If you don't assign a 
+translation for a menu, then pages in the menu are translated individually if they have translations assigned.", 'user-language-switch');
          break;
        case 'uls_tabs_available_language':
-         $description = '';//__('You can install more languages in your site following the instructions in <a href="http://codex.wordpress.org/WordPress_in_Your_Language" target="_blank">WordPress in Your Language</a>.', 'user-language-switch');
+         $description = '';
+         __('You can install more languages in your site following the instructions in 
+         <a href="http://codex.wordpress.org/WordPress_in_Your_Language" target="_blank">WordPress in Your Language</a>.', 'user-language-switch');
          break;
        case 'uls_tabs_language_filter':
-         $description = __("Select which post types should be filtered automatically by language. If a post, page or custom post doesn't match the language you are looking in the website, then it is not displayed. If a post, page or custom post doesn't have language, then it is matched with the default language of the website.", 'user-language-switch');
+         $description = __("Select which post types should be filtered automatically by language. If a post, page or custom post doesn't match the language you 
+are looking in the website, then it is not displayed. If a post, page or custom post doesn't have language, then it is matched with the default language of the 
+website.", 'user-language-switch');
          break;
      }
       ?>
@@ -697,7 +693,7 @@ class ULS_Options{
     * Create the HTML options to manage user language preferences in the user profile page.
     */
   static function create_user_profile_language_options(){
-    $options = array_merge(ULS_Options::$default_options, get_option('uls_settings'));
+    $options = array_merge(xs_translate_options::$default_options, get_option('uls_settings'));
     $default_backend_language = get_user_meta(get_current_user_id(), $options['backend_language_field_name'], true);
 
     if(empty($default_backend_language))
@@ -720,7 +716,8 @@ class ULS_Options{
           <tr valign="top">
             <th scope="row"><?php _e('Language for the website','user-language-switch'); ?></th>
             <td>
-                <?php echo uls_language_selector_input($options['frontend_language_field_name'],$options['frontend_language_field_name'],$default_frontend_language); ?>
+                <?php echo 
+uls_language_selector_input($options['frontend_language_field_name'],$options['frontend_language_field_name'],$default_frontend_language); ?>
             </td>
           </tr>
           <?php endif; ?>
@@ -732,7 +729,8 @@ class ULS_Options{
                   // $id, $name, $default_value = '', $class = '', $available_languages = true
                   $class = '';
                   $available_languages = false;
-                  echo uls_language_selector_input($options['backend_language_field_name'], $options['backend_language_field_name'], $default_backend_language, $class, $available_languages);
+                  echo uls_language_selector_input($options['backend_language_field_name'], $options['backend_language_field_name'], $default_backend_language, 
+$class, $available_languages);
               ?>
             </td>
           </tr>
@@ -827,30 +825,30 @@ class ULS_Options{
 /**
  * Add the menu in the hook
  */
-add_action( 'admin_menu', 'ULS_Options::register_menu' );
+add_action( 'admin_menu', 'xs_translate_options::register_menu' );
 /**
  * Add setting registration
  */
-add_action( 'admin_init', 'ULS_Options::init_settings' );
+add_action( 'admin_init', 'xs_translate_options::init_settings' );
 /**
  * Add Settings link to plugin admin page
  */
-add_filter('plugin_action_links_' . ULS_PLUGIN_NAME, 'ULS_Options::create_settings_link');
+add_filter('plugin_action_links_' . ULS_PLUGIN_NAME, 'xs_translate_options::create_settings_link');
 /**
  * Add default settings for the plugin.
  */
-register_activation_hook(ULS_FILE_PATH, 'ULS_Options::init_plugin');
+register_activation_hook(ULS_FILE_PATH, 'xs_translate_options::init_plugin');
 
 /**
  * Add ajax action to save user language preferences.
  */
-add_action('wp_ajax_uls_user_language_preferences', 'ULS_Options::save_user_language_preferences');
+add_action('wp_ajax_uls_user_language_preferences', 'xs_translate_options::save_user_language_preferences');
 /**
  * Add ajax action to save user language preferences.
  */
-add_filter('wp_nav_menu_items', 'ULS_Options::select_correct_menu_language', 10, 2);
+add_filter('wp_nav_menu_items', 'xs_translate_options::select_correct_menu_language', 10, 2);
 
 /**
  * Add ajax action to download a specific language
  */
-add_action('wp_ajax_uls_download_language', 'ULS_Options::download_language');
+add_action('wp_ajax_uls_download_language', 'xs_translate_options::download_language');
