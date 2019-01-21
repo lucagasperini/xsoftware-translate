@@ -16,9 +16,6 @@ define( 'ULS_PLUGIN_PATH', plugin_dir_path(__FILE__) );
 define( 'ULS_PLUGIN_NAME', plugin_basename(__FILE__) );
 define( 'ULS_FILE_PATH', __FILE__ );
 
-require_once 'uls-options.php';
-require_once 'codes.php';
-include 'uls-functions.php';
 
 /**
  * This function intis the plugin. It check the language in the URL, the language in the browser and the language in the user preferences to redirect the user to the correct page with translations.
@@ -27,6 +24,10 @@ include 'uls-functions.php';
  */
 add_action('init', 'uls_init_plugin');
 function uls_init_plugin(){
+        include 'uls-options.php';
+        include 'codes.php';
+        include 'uls-functions.php';
+        
         if(is_admin()) return;
         //load translation
         $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
@@ -427,7 +428,7 @@ function uls_get_url_translated($url, $language = NULL)
  *
  * @return string HTML code of the language selector input.
  */
-function uls_language_selector_input($id, $name, $default_value = '', $class = '', $available_languages = true){
+function uls_language_selector_input($id, $name, $default_value = '', $class = '', $available_languages = true){ //FIXME: remove function!
    //get available languages
    $available_languages = uls_get_available_languages($available_languages);
 
