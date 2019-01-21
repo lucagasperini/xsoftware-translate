@@ -4,7 +4,6 @@
  */
 class xs_translate_options{
    static private $default_options = array(
-      'uls_plugin_version' => '1.5',
       'user_backend_configuration' => true,
       'user_frontend_configuration' => true,
       'default_backend_language' => 'en_US',
