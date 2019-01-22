@@ -7,8 +7,8 @@ class xs_translate_options
         private $default_options = array(
         'user_backend_configuration' => true,
         'user_frontend_configuration' => true,
-        'default_backend_language' => 'en_US',
-        'default_frontend_language' => 'en_US',
+        'default_backend_language' => 'en',
+        'default_frontend_language' => 'en',
         'backend_language_field_name' => 'uls_backend_language',
         'frontend_language_field_name' => 'uls_frontend_language',
         'activate_tab_language_switch' => true,
@@ -150,7 +150,7 @@ class xs_translate_options
                 'data' => $this->options['available_languages'],
                 'selected' => $this->options['default_frontend_language']
         );
-       
+        
       add_settings_field($options['name'],
         __('Default language','user-language-switch'),
         'xs_framework::create_select',
@@ -218,26 +218,11 @@ class xs_translate_options
       // create menu table configuration
       add_settings_section('table_menu_language',
         '',
-        'xs_translate_options::create_table_menu_language',
+        array($this, 'create_table_menu_language'),
         'uls-settings-page',
-        'uls_tabs_menu_language',
-        $options);
+        'uls_tabs_menu_language'
+        );
 
-    }
-    else if( isset($_GET['tab']) && $_GET['tab'] == 'available_languages' ) {
-      //create section for registration
-      add_settings_section('uls_tabs_available_language',
-        __('Information','user-language-switch'),
-        'xs_translate_options::create_tabs_information_section',
-        'uls-settings-page');
-
-      // create table configuration
-      add_settings_section('table_available_language',
-        '',
-        'xs_translate_options::create_table_available_language',
-        'uls-settings-page',
-        'uls_tabs_available_language',
-        $options);
     }
     else if( isset($_GET['tab']) && $_GET['tab'] == 'languages_filter_enable' ) {
       //create section for tabs description
@@ -261,50 +246,13 @@ class xs_translate_options
   /**
   * Validate setting input fields.
   */
-  function validate_settings($input){
-
+  function validate_settings($input)
+  {
     $options = $this->options;
 
     // if this tab send by post
-    if( isset($input['menulanguage']) ) {
-      $options['position_menu_language'] = $input['uls_position_menu_language'];
-    }
-    else if ( isset($input['available_languages']) ) {
-      $options['available_language'] = $input['uls_available_language'];
-      $delete_flags = isset($input['uls_available_language_del_flags']) ? $input['uls_available_language_del_flags'] : '';
-
-      if ( !empty($delete_flags) ) {
-        foreach ($delete_flags as $key => $value) {
-          if ( isset($options['uls_available_language_new_flags'][$key]) ) {
-            unset( $options['uls_available_language_new_flags'][$key] );
-          }
-        }
-      }
-
-      // conditions for input file
-      $files_options = $_FILES['uls_available_language_new_flags'];
-      $upload_overrides = array( 'test_form' => false );
-      // check if the value is null to create each file to upload to the upload files
-      if( isset($files_options) && !empty($files_options) ) {
-        foreach ($files_options['name'] as $key => $value) {
-          // if the value is not empty, create the file array to upload file
-          if ( !empty($files_options['name'][$key]) ) {
-            $uploadedfile = array(
-              'name'     => $files_options['name'][$key],
-              'type'     => $files_options['type'][$key],
-              'tmp_name' => $files_options['tmp_name'][$key],
-              'error'    => $files_options['error'][$key],
-              'size'     => $files_options['size'][$key]
-              );
-            }
-          // upload file with wp function
-          $movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
-          // if it uploaded success save the public url
-          if ( $movefile && !isset( $movefile['error'] ) ) {
-            $options['uls_available_language_new_flags'][$key] = $movefile;
-          }
-        }
-      }// end conditions to the file input
+    if( isset($input['menu']) ) {
+      $options['menu'] = $input['menu'];
     }
     else if ( isset($input['languages_filter_enable']) ) {
       $options['languages_filter_enable'] = $input['uls_language_filter'];
@@ -314,7 +262,7 @@ class xs_translate_options
       // if the user does not save any language the default value is that the all languages are available
       // if the user does not want to show the languages he has tow options
       // 1 - desactive the flags tab  or 2 - desactive the plugin
-      $ulsAvailableLanguage = isset($options['available_language']) ? $options['available_language'] : uls_get_available_languages(false);
+      $ulsAvailableLanguage = isset($input['available_language']) ? $input['available_language'] : uls_get_available_languages(false);
       $ulsAvailableLanguageFlags = isset($options['uls_available_language_new_flags']) ? $options['uls_available_language_new_flags'] : '';
       // disable all post type filter
       $ulsLanguageFilter = isset($options['languages_filter_enable']) ? $options['languages_filter_enable'] : $this->default_options['languages_filter_enable'];
@@ -338,6 +286,7 @@ class xs_translate_options
       $options['uls_available_language_new_flags'] =   $ulsAvailableLanguageFlags;
       $options['languages_filter_enable']          =   $ulsLanguageFilter;
     }
+
     return $options;
   }
 
@@ -346,231 +295,38 @@ class xs_translate_options
   */
   function register_menu()
   {
-                
         add_submenu_page('xsoftware', __('User Language Switch','user-language-switch'),
         __('User Language Switch','user-language-switch'),
         'manage_options', 'uls-settings-page',
         'xs_translate_options::create_settings_page');
-
   }
 
 
-   /**
-    * Create the HTML of a table with languages lits.
-    * @param $options array plugin options saved.
-    */
-    static function create_table_menu_language($option) {
-      $languages = uls_get_available_languages(); // get the all languages available in the wp
-      $themeLocation  = get_registered_nav_menus(); // get the all theme location
-      $options = get_option('xs_translate_options'); // get information from DB
-      $options = isset($options['position_menu_language']) ? $options['position_menu_language'] : false; // get the information that actually is in the DB
-    ?>
-            <table id="menu-locations-table" class="widefat fixed">
-                  <thead>
-                      <tr>
-                          <th class="manage-column column-locations" scope="col">Theme Location</th>
-                          <?php foreach ($languages as $language_name => $language_code) : // add all header, language available ?>
-                              <th class="manage-column column-locations" scope="col"><?= $language_name ?></th>
-                          <?php endforeach; ?>
-                      </tr>
-                  </thead>
-                  <tbody class="menu-locations">
-                      <?php
-                        $menus = get_terms( 'nav_menu', array( 'hide_empty' => true ) ); // get menues
-                        foreach ($themeLocation as $theme => $location) : // iterative theme locations, add rows  ?>
-                          <tr id="menu-locations-row">
-                              <td class="menu-location-title"><strong><?=$location?></strong></td>
-                              <?php foreach ($languages as $language_name => $language_code ):  // iterative languages available in the wp?>
-                                <td class="menu-location-menus">
-                                  <select id="" class="" name="uls_position_menu_language[<?= $theme; ?>][<?= $language_code; ?>]" >
-                                            <option value="0">— Select a Menu —</option>
-                                    <?php
-                                          foreach ($menus as $menu ): // iterative menues, add cols ?>
-                                            <?php
-                                            $selectedHTML = '';
-                                            if(isset($options[$theme]) && isset($options[$theme][$language_code])) {
-                                              $selectedHTML = selected($menu->slug, ($options) ? $options[$theme][$language_code] : '' );
-                                            }
-                                            ?>
-                                            <option value="<?= $menu->slug; ?>"  <?= $selectedHTML;?> ><?= $menu ->name; ?></option>
-                                    <?php endforeach; ?>
-                                  </select>
-                                </td><!-- .menu-location-menus -->
-                              <?php endforeach; ?>
-                          </tr><!-- #menu-locations-row -->
-                      <?php endforeach; ?>
-                  </tbody>
-            </table>
-            <input type="hidden" name="menulanguage" value="menulanguage" >
-        <?php
-           }
+        /**
+        * Create the HTML of a table with languages lits.
+        * @param $options array plugin options saved.
+        */
+        static function create_table_menu_language($option) {
+                $languages = uls_get_available_languages(); // get the all languages available in the wp
+                $menus = get_terms( 'nav_menu', array( 'hide_empty' => true ) ); // get menues
+                foreach ($menus as $menu ) {
+                        $data_menu[$menu->slug] = $menu->name;
+                }
+        
+                foreach ($languages as $language_name => $language_code ) {
+                        $headers[]  = $language_name;
+                        $data_table[0][] = xs_framework::create_select( array(
+                                'name' => 'xs_translate_options[menu]['.$language_code.']', 
+                                'data' => $data_menu, 
+                                'selected' => $this->options['menu'][$language_code],
+                                'return' => true
+                        ));
+                }
+                xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
+        }
 
   static function sort_translations_callback($a, $b) {
     return strnatcasecmp($a['english_name'], $b['english_name']);
-  }
-
-   /*
-    * this function dowload automaticaly the langue from the https: official page
-    * this funcion check if the class ZipArchive is available and check the openss available too
-    * this class needs the last requirements to can download and unzip the language
-    */
-  static function download_language() {
-    $data = explode(";", $_POST['info_language']);
-    $remoteFile = $data[1];
-
-
-    $localPath = WP_CONTENT_DIR . '/languages/';
-    $localFile = $localPath."package.zip";
-
-    $flag = file_put_contents($localFile, fopen($remoteFile, 'r'));
-
-    if($flag === FALSE){
-      echo "0";
-    }
-    else{
-      if (class_exists('ZipArchive')){
-        $zip = new ZipArchive;
-        if ($zip->open($localFile) === TRUE) {
-          $zip->extractTo($localPath, array($data[0].".mo", $data[0].".po"));
-          $zip->close();
-        }
-        echo "1";
-      }
-      else{
-        echo "2";
-      }
-
-      unlink($localFile);
-    }
-
-    wp_die();
-  }
-
-  static function create_table_available_language($options) {
-
-    $languages = uls_get_available_languages(false); // get the all languages available in the wp
-    $options = get_option('xs_translate_options'); // get information from DB
-    $available_language = isset($options['available_language']) ? $options['available_language'] : uls_get_available_languages(false); 
-    // get the information that actually is in the DB
-  wp_enqueue_script( 'uls_languages_js', plugins_url('js/uls-languages-tap.js', __FILE__), array('jquery') );
-  ?>
-    <table id="menu-locations-table" class="">
-      <thead>
-        <tr>
-          <th>Enable</th>
-          <th>Language</th>
-          <th>Frontend flag optional</th>
-          <th>Optional flag</th>
-          <th>Remove</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($languages as $lang_name => $lang_code): ?>
-          <tr>
-            <?php $checked = isset($available_language[$lang_name]) ? 'checked' : ''; ?>
-            <td>
-              <input type="checkbox" name="uls_available_language[<?=$lang_name?>]" value="<?=$lang_code?>" <?=$checked?> />
-            </td>
-            <td>
-                <!--img src="<?= plugins_url("css/blank.gif", __FILE__) ?>" style="margin-right:5px;" class="flag_16x11 flag-<?= strtolower(substr($lang_code, 
--2))?>" alt="<?= $lang_name ?>" title="<?= $lang_name ?>" /-->
-                <img src="<?= plugins_url("css/blank.gif", __FILE__) ?>" style="margin-right:5px;" class="flag_16x11 flag-<?= 
-Codes::languageCode2CountryCode($lang_code); ?>" alt="<?= $lang_name ?>" title="<?= $lang_name ?>" />
-                <span><?= $lang_name; ?></span>
-            </td>
-            <td>
-              <input type="file" name="uls_available_language_new_flags[<?=$lang_name?>]" value=""  title="<?= __("the default dimension is 32x32 px, it is 
-neccessary to keep the aesthetics"); ?>" />
-            </td>
-            <td>
-              <?php if ( isset($options['uls_available_language_new_flags']) && isset($options['uls_available_language_new_flags'][$lang_name]) ): ?>
-                  <img src="<?= $options['uls_available_language_new_flags'][$lang_name]['url'] ?>" class="optional_flag" alt="<?=$lang_name;?>" title="<?= 
-$lang_name ?>" ></img>
-              <?php endif; ?>
-           </td>
-            <td>
-              <?php if ( isset($options['uls_available_language_new_flags']) && isset($options['uls_available_language_new_flags'][$lang_name]) ): ?>
-                <input type="checkbox" name="uls_available_language_del_flags[<?=$lang_name?>]" value="" />
-              <?php endif; ?>
-           </td>
-          </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-    <input type="hidden" name="available_languages" value="available_languages" >
-
-    <br/>
-
-    <table id="menu-locations-table" class="">
-      <thead>
-        <tr>
-          <th>Install Additional Languages</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-        <?php
-          require_once ABSPATH . '/wp-admin/includes/translation-install.php';
-          $translations = wp_get_available_translations();
-          uasort($translations, array( __CLASS__, 'sort_translations_callback'));
-
-
-          // check the requirement to can download language
-          $execute_languages = true;
-          $zip_message = ''; // meessage information
-          $ssl_message = ''; // meessage information
-          if ( !class_exists('ZipArchive')  ){
-            $zip_message = '<p class="bg-warning">';
-            $zip_message .= __("Missing class ZipArchive. Please install and retry later.");
-            $zip_message .= '</p>';
-            $execute_languages = false;
-          }
-          if ( !extension_loaded('openssl') ) {
-            $ssl_message = '<p class="bg-warning">';
-            $ssl_message .= __("Missing extension openssl. Please enable openss extension in your php.ini and retry later.");
-            $ssl_message .= '</p>';
-            $execute_languages = false;
-          }
-
-          echo "<td>".__('Select a language').": </td><td><select id='tblang'>";
-          if ( $execute_languages ) {
-            foreach($translations as $language){
-              echo "<option value='".$language['language'].";".$language['package'].";".$language['english_name']."'>";
-              echo $language['english_name']." - ".$language['native_name']."</option>";
-            }
-          }
-          echo "</select>";
-          if ( $execute_languages ) : ?>
-            <input type="button"
-                   class="button-primary"
-                   id="button-download-language"
-                   value="<?php echo __('Download','user-language-switch')?>" />
-          <?php endif; ?>
-        </td>
-        </tr>
-      </tbody>
-    </table>
-    <div id="div_message_download" class="div_message_download">
-      <?php
-        if(isset($_GET['success'])){
-          if($_GET['success'] == 1) {
-            $ok_message = '<p class="bg-success">';
-            $ok_message .= __("Language successfully downloaded!!!");
-            $ok_message .= '</p>';
-            echo $ok_message;
-          }
-          else if($_GET['success'] == 0) {
-            $error_message = '<p class="bg-warning">';
-            $error_message .= __("File writing permission denied. Please fix permissions to directory wp-content/languages.");
-            $error_message .= '</p>';
-            echo $error_message;
-          }
-        }
-        echo $zip_message;
-        echo $ssl_message;
-      ?>
-    </div>
-  <?php
   }
 
    /*
@@ -670,7 +426,6 @@ website.", 'user-language-switch');
     // add the tabs that you want to use in the plugin
     $tabs = array('homepage' => __('General', 'user-language-switch'),
                   'menulanguage' => __('Menu Languages', 'user-language-switch'),
-                  'available_languages' => __('Available Languages', 'user-language-switch'),
                   'languages_filter_enable' => __('Filter Post Types', 'user-language-switch') );
 
     echo '<div id="icon-themes" class="icon32"><br></div>';
@@ -783,37 +538,17 @@ $class, $available_languages);
       return $links;
    }
 
-   static function select_correct_menu_language($items, $args) {
-
-    $options = get_option('xs_translate_options');
-    $menu_name = $args->menu;
-    $position_menu_language = isset($options['position_menu_language']) ? $options['position_menu_language'] : array();
-
-    // if the mena arrive ask which traduction should be show up
-    if (!empty($args->menu)) {
-      foreach ( $position_menu_language as $location => $array_translation ) {
-         $key = array_search ( $args->menu , $array_translation);
-           if ($key) {
-             $menu_name = $array_translation[uls_get_user_language()];
-             if ($menu_name == $args->menu)
-               return $items;
-             else
-               return wp_nav_menu( array( 'menu' => $menu_name, 'items_wrap' => '%3$s' , 'container' => false, 'echo' => 0) );
-           }
-       }
-    }
-
-    // if the theme_location arrive ask whitch traduction should be show up
-    if (!empty($args->theme_location)) {
-      $menu_location = $position_menu_language[$args->theme_location];
-      $key_menu_name = isset($menu_location[uls_get_user_language()]) ? array_search($menu_location[uls_get_user_language()], $menu_location) : '' ;
-      if ( $key_menu_name != uls_get_user_language())
-       return $items;
-      else
-       return wp_nav_menu( array( 'menu' => $menu_location[uls_get_user_language()], 'items_wrap' => '%3$s' , 'container' => false, 'echo' => 0) );
-    }
-    return $items;
-   }
+        static function select_correct_menu_language($items, $args) 
+        {
+                $options = get_option('xs_translate_options');
+                $menu_name = $args->menu;
+                $user_lang = uls_get_user_language();
+                $menu = isset($options['menu'][$user_lang]) ? $options['menu'][$user_lang] : '';
+                if($menu_name == $menu)
+                        return $items;
+                else
+                        return wp_nav_menu( array( 'menu' => $menu, 'items_wrap' => '%3$s' , 'container' => false, 'echo' => false) );
+        }
 }
 
 $xs_translate_options = new xs_translate_options();
