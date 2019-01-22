@@ -5,19 +5,19 @@
 class xs_translate_options
 {
         private $default_options = array(
-        'user_backend_configuration' => true,
-        'user_frontend_configuration' => true,
+        'user_backend_configuration' => TRUE,
+        'user_frontend_configuration' => TRUE,
         'default_backend_language' => 'en',
         'default_frontend_language' => 'en',
         'backend_language_field_name' => 'uls_backend_language',
         'frontend_language_field_name' => 'uls_frontend_language',
-        'activate_tab_language_switch' => true,
+        'activate_tab_language_switch' => TRUE,
         'tab_color_picker_language_switch' => 'rgba(255, 255, 255, 0)',
         'tab_position_language_switch' => 'RM',
-        'fixed_position_language_switch' => true,
-        'use_google_translate' => true,
-        'automatic_redicted_ssl' => true,
-        'enable_translation_sidebars_language_switch' => true,
+        'fixed_position_language_switch' => TRUE,
+        'use_google_translate' => TRUE,
+        'automatic_redicted_ssl' => TRUE,
+        'enable_translation_sidebars_language_switch' => TRUE,
         'languages_filter_enable' => array('post' => 'post', 'page' => 'page'),
         );
         
@@ -243,52 +243,31 @@ class xs_translate_options
     }
   }
 
-  /**
-  * Validate setting input fields.
-  */
-  function validate_settings($input)
-  {
-    $options = $this->options;
+        /**
+        * Validate setting input fields.
+        */
+        function validate_settings($input)
+        {
+                $options = $this->options;
+                if( isset($input['menu']) ) {
+                        $options['menu'] = $input['menu'];
+                }
+                else if ( isset($input['languages_filter_enable']) ) {
+                        $options['languages_filter_enable'] = $input['uls_language_filter'];
+                } else {
+                        $ulsAvailableLanguage = isset($input['available_language']) ? $input['available_language'] : uls_get_available_languages(false);
 
-    // if this tab send by post
-    if( isset($input['menu']) ) {
-      $options['menu'] = $input['menu'];
-    }
-    else if ( isset($input['languages_filter_enable']) ) {
-      $options['languages_filter_enable'] = $input['uls_language_filter'];
-    }else{
-      //create default options
-      $ulsPostionMenuLanguage = $options['position_menu_language'];
-      // if the user does not save any language the default value is that the all languages are available
-      // if the user does not want to show the languages he has tow options
-      // 1 - desactive the flags tab  or 2 - desactive the plugin
-      $ulsAvailableLanguage = isset($input['available_language']) ? $input['available_language'] : uls_get_available_languages(false);
-      $ulsAvailableLanguageFlags = isset($options['uls_available_language_new_flags']) ? $options['uls_available_language_new_flags'] : '';
-      // disable all post type filter
-      $ulsLanguageFilter = isset($options['languages_filter_enable']) ? $options['languages_filter_enable'] : $this->default_options['languages_filter_enable'];
-
-      $options = $this->default_options;
-
-      foreach($options as $k => $v)
-        if(isset($input[$k]) && !empty($input[$k]) && '' != trim($input[$k]))
-          $options[$k] = trim($input[$k]);
-
-      //get values of checkboxes
-      $options['user_backend_configuration']     =   isset($input['user_backend_configuration']);
-      $options['user_frontend_configuration']    =   isset($input['user_frontend_configuration']);
-      $options['activate_tab_language_switch']   =   isset($input['activate_tab_language_switch']);
-      $options['fixed_position_language_switch'] =   isset($input['fixed_position_language_switch']);
-      $options['use_google_translate']            =   isset($input['use_google_translate']);
-      $options['automatic_redicted_ssl']        = isset($input['automatic_redicted_ssl']);
-      $options['enable_translation_sidebars_language_switch'] = isset($input['enable_translation_sidebars_language_switch']);
-      $options['position_menu_language']           =   $ulsPostionMenuLanguage;
-      $options['available_language']               =   $ulsAvailableLanguage;
-      $options['uls_available_language_new_flags'] =   $ulsAvailableLanguageFlags;
-      $options['languages_filter_enable']          =   $ulsLanguageFilter;
-    }
-
-    return $options;
-  }
+                        //get values of checkboxes
+                        $options['user_backend_configuration']     =   isset($input['user_backend_configuration']);
+                        $options['user_frontend_configuration']    =   isset($input['user_frontend_configuration']);
+                        $options['activate_tab_language_switch']   =   isset($input['activate_tab_language_switch']);
+                        $options['fixed_position_language_switch'] =   isset($input['fixed_position_language_switch']);
+                        $options['use_google_translate']            =   isset($input['use_google_translate']);
+                        $options['automatic_redicted_ssl']        = isset($input['automatic_redicted_ssl']);
+                        $options['enable_translation_sidebars_language_switch'] = isset($input['enable_translation_sidebars_language_switch']);
+                }
+                return $options;
+        }
 
   /**
   * Add entries in menu sidebar in back end.
