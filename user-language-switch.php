@@ -93,47 +93,6 @@ function uls_get_user_language_from_url($only_lang = false){
 
 
 /**
- * This function retrieves the user language selected in the admin side.
- *
- * @param $only_lang boolean if it is true, then it returns the 2 letters of the language. It is the language code without location.
- * @param $type string (backend|frontend) specify which language it will return.
- *
- * @return mixed it returns a string containing a language code. If user don't have permissions to change languages or user hasn't configured a language, then the default language of the website is returned. If user isn't logged in, then the default language of the website is returned.
- */
-function uls_get_user_saved_language($only_lang = false, $type = null){
-  //get the options of the plugin
-  $options = uls_get_options();
-  $language = false;
-
-  //detect if the user is in backend or frontend
-  if($type == null){
-    $type = 'frontend';
-    if( is_admin() )
-      $type = 'backend';
-  }
-
-  //if the user is logged in
-  if( is_user_logged_in() ){
-    //if the user can modify the language
-    if($options["user_{$type}_configuration"])
-      $language = get_user_meta(get_current_user_id(), "uls_{$type}_language", true);
-  }
-
-  //set the default language if the user doesn't have a preference
-  if(empty($language))
-    $language = $options["default_{$type}_language"];
-
-  //remove the location
-  if(false != $language && $only_lang){
-    $pos = strpos($language, '_');
-    if(false !== $pos)
-      return substr($language, 0, $pos);
-  }
-
-  return $language;
-}
-
-/**
  * This function retrieves the user language from the browser. It reads the headers sent by the browser about language preferences.
  *
  * @return mixed it returns a string containing a language code or false if there isn't any language detected.
@@ -222,18 +181,6 @@ function uls_get_user_language(){
   return isset($_COOKIE['uls_language']) ? $_COOKIE['uls_language'] :  uls_get_site_language();
 }
 
-/**
- * Get the default language of the website.
- *
- * @param $side string (frontend | backend) if it is frontend, then it returns the default language for the front-end side, otherwise it returns the language for the back-end side. If there is not languages configured, then it returns false.
- *
- * @return mixed it returns an string with language code or false if there is not languages configured.
- */
-function uls_get_site_language($side = 'frontend'){
-   $options = uls_get_options();
-   return isset($options["default_{$side}_language"]) ? $options["default_{$side}_language"] : false;
-}
-
 function uls_translate_by_google()
 {
         $options = uls_get_options();
@@ -278,66 +225,6 @@ function uls_redirect_by_language($language)
         }
         return NULL;
 }
-
-/**
- * This function is attached to the WP hook "locale" and it sets the language to see the current page. The function get the language of the user, it uses the first language found in these options: URL, browser configuration, user settings, default language.
- */
-function uls_language_loading($lang){
-   global $uls_locale;
-   //if this method is already called, then it remove the action to avoid recursion
-   if($uls_locale)
-    remove_filter('locale', 'uls_language_loading');
-   else
-     $uls_locale = true;
-
-   if ( !isset($_SESSION) )
-     session_start();
-
-   if ( is_admin() )
-     $res = isset($_SESSION["ULS_USER_BACKEND_LOCALE"]) ? $_SESSION["ULS_USER_BACKEND_LOCALE"] : $lang;
-   else
-     $res = isset($_SESSION["ULS_USER_FRONTEND_LOCALE"]) ? $_SESSION["ULS_USER_FRONTEND_LOCALE"] : $lang;
-
-   $uls_locale = false;
-   return $res;
-}
-add_filter('locale', 'uls_language_loading');
-
-
-/*
- * This function create the new value on sessions vars, it save code language, it is necesary because many function need this value and it is not a good way save this value in db.
- */
-
-function uls_language_loading_in_session ( $username ) {
-
-  // check if the user exits
-  if ( ! username_exists( $username ) )
-    return;
-
-  // get current user
-  $user = get_user_by( 'login', $username );
-
-  // if user is empty return nothing
-  if (empty($user))
-    return;
-
-  //get the options of the plugin
-  $options = uls_get_options();
-  $language = '';
-
-  //if the user can modify the language
-  if($options["user_frontend_configuration"])
-    $language_ftd = get_user_meta($user->ID, "uls_frontend_language", true);
-
-  if($options["user_backend_configuration"])
-    $language_bkd = get_user_meta($user->ID, "uls_backend_language", true);
-
-  // Save language
-  $_SESSION["ULS_USER_FRONTEND_LOCALE"] = $language_ftd;
-  $_SESSION["ULS_USER_BACKEND_LOCALE"] = $language_bkd;
-}
-add_action( 'wp_authenticate' , 'uls_language_loading_in_session' );
-
 
 /**
  * It returns the configured or default code language for a language abbreviation. The code language is the pair of language and country (i.e: en_US, es_ES)-
@@ -763,7 +650,7 @@ function uls_add_language_meta_query(&$query){
   $language_displayed = uls_get_user_language();
 
   //get the default language of the website
-  $default_website_language = uls_get_site_language();
+  $default_website_language = xs_framework::get_option('frontend_language');
 
   //if the language displayed is the same to the default language, then it includes posts without language
   $language_query = null;
