@@ -928,22 +928,3 @@ function update_db_after_update() {
 }
 register_activation_hook( __FILE__, 'update_db_after_update' );
 
-
-/*
-  Moving configuration options to user profile page
-*/
-add_action( 'show_user_profile', 'extended_user_profil_fields' );
-add_action( 'edit_user_profile', 'extended_user_profil_fields' );
-
-function extended_user_profil_fields( $user ) {
-  xs_translate_options::create_user_profile_language_options();
-}
-
-add_action( 'personal_options_update', 'save_language_options' );
-add_action( 'edit_user_profile_update', 'save_language_options' );
-
-//Función que guarda los cambios
-function save_language_options( $user_id ) {
-  xs_translate_options::save_user_profile_language_preferences();
-}
-
