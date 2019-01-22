@@ -144,31 +144,6 @@ class xs_translate_options
         'uls-settings-page',
         'uls_general_settings_section',
         $options);
-        
-        $options = array(
-                'name' => 'xs_translate_options[default_frontend_language]',
-                'data' => $this->options['available_languages'],
-                'selected' => $this->options['default_frontend_language']
-        );
-        
-      add_settings_field($options['name'],
-        __('Default language','user-language-switch'),
-        'xs_framework::create_select',
-        'uls-settings-page',
-        'uls_general_settings_section',
-        $options);
-
-        $options = array(
-                'name' => 'xs_translate_options[default_backend_language]',
-                'data' => $this->options['available_languages'],
-                'selected' => $this->options['default_backend_language']
-        );
-      add_settings_field($options['name'],
-        __('Default language for admin side','user-language-switch'),
-        'xs_framework::create_select',
-        'uls-settings-page',
-        'uls_general_settings_section',
-        $options);
 
         $options = array( 
                 'name' => 'xs_translate_options[enable_translation_sidebars_language_switch]', 
@@ -255,8 +230,6 @@ class xs_translate_options
                 else if ( isset($input['languages_filter_enable']) ) {
                         $options['languages_filter_enable'] = $input['uls_language_filter'];
                 } else {
-                        $ulsAvailableLanguage = isset($input['available_language']) ? $input['available_language'] : uls_get_available_languages(false);
-
                         //get values of checkboxes
                         $options['user_backend_configuration']     =   isset($input['user_backend_configuration']);
                         $options['user_frontend_configuration']    =   isset($input['user_frontend_configuration']);
