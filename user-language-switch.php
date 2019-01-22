@@ -33,30 +33,12 @@ function uls_init_plugin(){
         $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
         load_plugin_textdomain( 'user-language-switch', false, $plugin_dir );
         
-        //init flag of permalink convertion to true. When this flag is false, then don't try to get translations when is generating permalinks
-        global $uls_permalink_convertion;
-        $uls_permalink_convertion = true;
-
-        //init flat for uls link filter function. When this flag is true is because it is running a process to generate a link with translations, then it abort any try to get a translation over a translation, in this way it doesn't do an infinite loop.
-        global $uls_link_filter_flag;
-        $uls_link_filter_flag = true;
-        
-        //take language from browser setting
-        $language = uls_get_user_language_from_browser();
-        if(in_array($language, uls_get_available_languages())) {
-                $language = uls_cookie_language($language);
+        if(isset($_COOKIE['xs_framework_user_language'])) {
                 //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
-                uls_redirect_by_language($language);
+                uls_redirect_by_language($_COOKIE['xs_framework_user_language']);
         } else {
                 uls_translate_by_google();
         }
-        
-        //reset flags
-        $uls_permalink_convertion = false;
-        $uls_link_filter_flag = false;
-
-        //init session to detect if you are in the home page by "first time"
-        if(!session_id()) session_start();
 }
 
 /**
@@ -92,80 +74,6 @@ function uls_get_user_language_from_url($only_lang = false){
 }
 
 
-/**
- * This function retrieves the user language from the browser. It reads the headers sent by the browser about language preferences.
- *
- * @return mixed it returns a string containing a language code or false if there isn't any language detected.
- */
-function uls_get_user_language_from_browser(){
-  if(!isset($_SERVER["HTTP_ACCEPT_LANGUAGE"])){
-        return false;
-  }
-    //split the header languages
-    $browserLanguages = explode(',', $_SERVER["HTTP_ACCEPT_LANGUAGE"]);
-    
-    
-
-    //parse each language
-    $parsedLanguages = array();
-    foreach($browserLanguages as $bLang){
-      //check for q-value and create associative array. No q-value means 1 by rule
-      if(preg_match("/(.*);q=([0-1]{0,1}\.\d{0,4})/i",$bLang,$matches)){
-        $matches[1] = strtolower(str_replace('-', '_', $matches[1]));
-        $parsedLanguages []= array(
-          'code' => (false !== strpos($matches[1] , '_')) ? $matches[1] : false,
-          'l' => $matches[1],
-          'q' => (float)$matches[2],
-        );
-      }
-      else{
-        $bLang = strtolower(str_replace('-', '_', $bLang));
-        $parsedLanguages []= array(
-          'code' => (false !== strpos($bLang , '_')) ? $bLang : false,
-          'l' => $bLang,
-          'q' => 1.0,
-        );
-      }
-    }
-    //get the languages activated in the site
-    $validLanguages = uls_get_available_languages();
-    
-    //validate the languages
-    $max = 0.0;
-    $maxLang = false;
-    foreach($parsedLanguages as $k => &$v){
-      if(false !== $v['code']){
-        //search the language in the installed languages using the language and location
-        foreach($validLanguages as $vLang){
-          if(strtolower($vLang) == $v['code']){
-            //replace the preferred language
-            if($v['q'] > $max){
-              $max = $v['q'];
-              $maxLang = $vLang;
-            }
-          }
-        }//check for the complete code
-      }
-    }
-
-    //if language hasn't been detected
-    if(false == $maxLang){
-      foreach($parsedLanguages as $k => &$v){
-        //search only for the language
-        foreach($validLanguages as $vLang){
-          if(substr($vLang, 0, 2) == substr($v['l'], 0, 2)){
-            //replace the preferred language
-            if($v['q'] > $max){
-              $max = $v['q'];
-              $maxLang = $vLang;
-            }
-          }
-        }//search only for the language
-      }
-    }
-
-    return $maxLang;
-}
 
 
 
@@ -227,38 +135,6 @@ function uls_redirect_by_language($language)
 }
 
 /**
- * It returns the configured or default code language for a language abbreviation. The code language is the pair of language and country (i.e: en_US, es_ES)-
- *
- * @param $language code language.
- *
- * @return mixed it returns an string with the complete code or null if the language is not available.
- */
-function uls_get_location_by_language($language){
-  //get available languages activated in the website
-  $available_languages = uls_get_available_languages();
-  //for each code language, search for the language
-  foreach($available_languages as $code)
-    if(substr($language, 0, 2) == $language)
-      return $code;
-
-  return null;
-}
-
-/**
- * Validate if language is valid and active.
- *
- * @param $language string language to validate.
- *
- * @return boolean true if language is valid, otherwise it returns false.
- */
-function uls_valid_language($language){
-   //TO-DO: validate with registered languages in the site
-   //get language names
-   require 'uls-languages.php';
-   return !empty($country_languages[$language]) || in_array($language, $language_codes);
-}
-
-/**
  * Return the id of the translation of a post.
  *
  * @param $post_id integer id of post to translate.
@@ -266,24 +142,23 @@ function uls_valid_language($language){
  *
  * @return mixed it returns id of translation post as an integer or false if translation doesn't exist.
  */
-function uls_get_post_translation_id($post_id, $language = null){
-  //get language
-  if(!uls_valid_language($language))
-    $language = uls_get_user_language();
+function uls_get_post_translation_id($post_id, $language = null)
+{
+        $language = uls_get_user_language();
 
-  //get the translation of the post
-  $post_language = uls_get_post_language($post_id);
+        //get the translation of the post
+        $post_language = uls_get_post_language($post_id);
 
-  //if the language of the post is the same language of the translation
-  if($post_language == $language)
-    return $post_id;
+        //if the language of the post is the same language of the translation
+        if($post_language == $language)
+        return $post_id;
 
-  //get the translation
-  $translation = get_post_meta($post_id, 'uls_translation_' . $language, true);
-  if("" == $translation)
-    $translation = get_post_meta($post_id, 'uls_translation_' . strtolower($language), true);
+        //get the translation
+        $translation = get_post_meta($post_id, 'uls_translation_' . $language, true);
+        if("" == $translation)
+                $translation = get_post_meta($post_id, 'uls_translation_' . strtolower($language), true);
 
-  return empty($translation) ? false : $translation;
+        return empty($translation) ? false : $translation;
 }
 
 /**
@@ -382,22 +257,19 @@ function uls_get_available_languages( $available_languages = true ){
  *
  * @return string the code of the language or an empty string if the post doesn't have a language.
  */
-function uls_get_post_language($id){
-  $postLanguage = get_post_meta($id, 'uls_language', true);
-  if("" == $postLanguage) return "";
+function uls_get_post_language($id)
+{
+        $postLanguage = get_post_meta($id, 'uls_language', true);
+        if("" == $postLanguage) 
+                return "";
 
-  //format the language code
-  $p = strpos($postLanguage, "_");
-  if($p !== false){
-    $postLanguage = substr($postLanguage, 0, $p) . strtoupper(substr($postLanguage, $p));
-  }
+        //format the language code
+        $p = strpos($postLanguage, "_");
+        if($p !== false){
+                $postLanguage = substr($postLanguage, 0, $p) . strtoupper(substr($postLanguage, $p));
+        }
 
-  //validate the language
-  if (uls_valid_language($postLanguage)) {
-    return $postLanguage;
-  }
-
-  return "";
+        return $postLanguage;
 }
 
 /**
