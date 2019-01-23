@@ -28,29 +28,6 @@ function uls_get_options(){
 }
 
 /**
- * This function returns the URL used in the browser.
- *
- * @return string URL in the browser.
- */
-function uls_get_browser_url()
-{
-
-        if(!isset($_SERVER['HTTP_HOST']) || !isset($_SERVER['REQUEST_URI']))
-                return false;
-        
-        $options = uls_get_options();
-        
-        if((isset($options['automatic_redicted_ssl']) && $options['automatic_redicted_ssl']) || (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"]=="on"))
-                $url = "https://";
-        else
-                $url = "http://";
-                
-        $url .= $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
-        
-        return $url;
-}
-
-/**
  * Return the permalink of the translation link of a post.
  *
  * @param $post_id integer id of post.
@@ -79,7 +56,7 @@ function uls_get_link($post_id = null, $language = null, $label = null, $class='
 
         if ($post_id == null) {
                 if (is_home() || is_front_page() || is_archive() || is_author() || is_category() || is_tag() || is_date()) {
-                        $url = uls_get_browser_url();
+                        $url = xs_framework::get_browser_url();
                         $translation_url = uls_get_url_translated($url, $language);
                 }
         } else {
@@ -106,9 +83,11 @@ function uls_get_link($post_id = null, $language = null, $label = null, $class='
         }
 
         if(null == $label)
-                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $title . '</a>';
+                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $title . 
+'</a>';
         else
-                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $label . '</a>';
+                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $label . 
+'</a>';
 }
 /**
  * Add shortcode to get link.
@@ -148,7 +127,7 @@ function uls_link_shortcode($atts){
 function uls_language_link_switch($url = null, $url_type = 'prefix', $type = 'links', $only_lang_name = true, $class = null){
   //if URL is null, then it uses the current URL
   if(null == $url)
-    $url = uls_get_browser_url();
+    $url = xs_framework::get_browser_url();
 
   //get the available languages
   $available_languages = uls_get_available_languages();
@@ -239,7 +218,7 @@ function uls_language_selector_shortcode($atts){
 
   //if URL is null, then it uses the current URL
   if(null == $url)
-    $url = uls_get_browser_url();
+    $url = xs_framework::get_browser_url();
 
   if("false" == $only_language)
     $only_language = false;

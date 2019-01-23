@@ -394,7 +394,7 @@ website.", 'user-language-switch');
         {
                 $options = get_option('xs_translate_options');
                 $menu_name = $args->menu;
-                $user_lang = uls_get_user_language();
+                $user_lang = xs_framework::get_user_language();
                 $menu = isset($options['menu'][$user_lang]) ? $options['menu'][$user_lang] : '';
                 if($menu_name == $menu)
                         return $items;

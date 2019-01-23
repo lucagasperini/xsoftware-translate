@@ -26,7 +26,6 @@ add_action('init', 'uls_init_plugin');
 function uls_init_plugin(){
         include 'uls-options.php';
         include 'codes.php';
-        include 'uls-functions.php';
         
         if(is_admin()) return;
         //load translation
@@ -41,53 +40,15 @@ function uls_init_plugin(){
         }
 }
 
-/**
- * This function gets the language from the current URL.
- *
- * @param $only_lang boolean if it is true, then it returns the 2 letters of the language. It is the language code without location.
- *
- * @return mixed it returns a string containing a language code or false if there isn't any language detected.
- */
-function uls_get_user_language_from_url($only_lang = false){
-        if(!isset($_SERVER['HTTP_HOST']) || !isset($_SERVER['REQUEST_URI'])) {
-                return false;
-        }
-        //get language from URL
-        $language = null;
-        if(is_null($language)) {
-                //activate flag to avoid translations and get the real URL of the blog
-                global $uls_permalink_convertion;
-                $uls_permalink_convertion = true;
-
-                //get the langauge from the URL
-                $url = str_replace(get_bloginfo('url'), '', 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-                if( isset($url[0]) && $url[0] == '/') $url = substr($url, 1);
-                        $parts = explode('/', $url);
-                if(count($parts) > 0)
-                        $language = $parts[0];
-
-                //reset the flag
-                $uls_permalink_convertion = true;
-        }
-
-        return uls_valid_language($language) ? $language : false;
-}
-
-
-
-
 
 /**
- * This function gets the language from the URL, if there is no language in the URL, then it gets language from settings saved by the user in the back-end side. If there isn't a language in the URL or user hasn't set it, then default language of the website is used.
+ * This function gets the language from the URL, if there is no language in the URL, then it gets language from settings saved by the user in the back-end side. 
+If there isn't a language in the URL or user hasn't set it, then default language of the website is used.
  *
  * @param $only_lang boolean if it is true, then it returns the 2 letters of the language. It is the language code without location.
  *
  * @return string language code. If there isn't a language in the URL or user hasn't set it, then default language is returned.
  */
-function uls_get_user_language(){
-
-  return isset($_COOKIE['uls_language']) ? $_COOKIE['uls_language'] :  uls_get_site_language();
-}
 
 function uls_translate_by_google()
 {
@@ -99,20 +60,6 @@ function uls_translate_by_google()
         
 }
 
-function uls_cookie_language($language)
-{
-        if($language == NULL || $language == false)  
-                return NULL;
-                
-        if(!isset($_COOKIE['uls_language'])){
-                setcookie('uls_language', $language, time()+2*60*60, "/"); //set a cookie for 2 hour
-                return $language;
-        } else {
-                return $_COOKIE['uls_language'];
-        }
-        
-}
-
 /**
  * This function check if the redirection based on the browser language is enabled. If it is add cookies to manage language
  *
@@ -120,7 +67,7 @@ function uls_cookie_language($language)
  */
 function uls_redirect_by_language($language)
 {
-        $url = uls_get_browser_url();
+        $url = xs_framework::get_browser_url();
         $url = strtok($url, '?'); //remove query string if there are
 
         $redirectUrl = uls_get_url_translated($url, $language);
@@ -144,7 +91,7 @@ function uls_redirect_by_language($language)
  */
 function uls_get_post_translation_id($post_id, $language = null)
 {
-        $language = uls_get_user_language();
+        $language = xs_framework::get_user_language();
 
         //get the translation of the post
         $post_language = uls_get_post_language($post_id);
@@ -219,37 +166,6 @@ function uls_language_selector_input($id, $name, $default_value = '', $class = '
    return $res;
 }
 
-
-/**
- * Get the available languages on the system.
- *
- * @return array associative array with the available languages in the system. The keys are the language names and the values are the language codes.
- */
-function uls_get_available_languages( $available_languages = true ){
-  if ($available_languages) {
-    $options = get_option('uls_settings'); // get information from DB
-    // if the user does not have available the languages so the plugin avilable all languages
-    $available_language = isset($options['available_language']) ? $options['available_language'] : uls_get_available_languages(false);
-    return $available_language;
-  }
-   $theme_root = get_template_directory();
-   $lang_array = get_available_languages( $theme_root.'/languages/' );
-   $wp_lang = get_available_languages(WP_CONTENT_DIR.'/languages/');
-   if(!empty($wp_lang)) $lang_array = array_merge((array)$lang_array, (array)$wp_lang);
-   if (!in_array('en_US',$lang_array)) array_push($lang_array, 'en_US');
-   $lang_array = array_unique($lang_array);
-   require 'uls-languages.php';
-   $final_array= array();
-   foreach($lang_array as $lang):
-     if(!empty($country_languages[$lang]))
-       $final_array[$country_languages[$lang]] = $lang;
-     else
-       $final_array[$lang] = $lang;
-   endforeach;
-   return $final_array;
-
-}
-
 /**
  * Get the language of a post.
  *
@@ -288,7 +204,7 @@ function uls_language_metaboxes( $meta_boxes ) {
       }
    }
    $prefix = 'uls_'; // Prefix for all fields
-   $languages = uls_get_available_languages();
+   $languages = xs_framework::get_option('available_languages');
    $options = array(array('name'=>'Select one option', 'value'=>''));
    require 'uls-languages.php';
    $fields = array();
@@ -392,7 +308,8 @@ function uls_save_association( $post_id ) {
 
   // get array post metas because we need the uls_language and uls_translation
   $this_post_metas = get_post_meta( $parent_id );
-  $this_uls_translation = !empty($this_post_metas) ?  isset($this_post_metas['uls_language']) ? 'uls_translation_'.strtolower($this_post_metas['uls_language'][0]) : '' : '';
+  $this_uls_translation = !empty($this_post_metas) ?  isset($this_post_metas['uls_language']) ? 
+'uls_translation_'.strtolower($this_post_metas['uls_language'][0]) : '' : '';
   // if the language of this page change so change the all pages that have this like a traduction
   if ($selected_language != $this_uls_translation) {
     // get post that have this traduction
@@ -519,7 +436,7 @@ function uls_add_language_meta_query(&$query){
   $uls_permalink_convertion = true;
 
   //get language displayed
-  $language_displayed = uls_get_user_language();
+  $language_displayed = xs_framework::get_user_language();
 
   //get the default language of the website
   $default_website_language = xs_framework::get_option('frontend_language');
@@ -633,8 +550,8 @@ function head_reference_translation() {
   $post_id = url_to_postid($url);
 
   // get all available languages
-  $languages = uls_get_available_languages();
-  $curren_code = uls_get_user_language(); // get current language
+  $languages = xs_framework::get_option('available_languages');
+  $curren_code = xs_framework::get_user_language(); // get current language
   // delete the current language site
   $code_value = array_search($curren_code, $languages);
   unset($languages[$code_value]);
@@ -645,7 +562,7 @@ function head_reference_translation() {
   if ( is_home() )
     $url = get_home_url(); // get home url
   else if ( is_archive() || is_search() || is_author() || is_category() || is_tag() || is_date() )
-    $url = uls_get_browser_url(); // get browser url
+    $url = xs_framework::get_browser_url(); // get browser url
 
   // if exits the url so, translate this
   if (!empty($url) ) {
@@ -676,14 +593,3 @@ function head_reference_translation() {
     $uls_permalink_convertion = true;
   }
 }
-
-
-// desactivate the tab flags
-function update_db_after_update() {
-
-  $options = get_option('uls_settings');
-  !isset( $options['activate_tab_language_switch'] ) ?  $options['activate_tab_language_switch'] = false : '' ;
-  update_option('uls_settings',$options);
-}
-register_activation_hook( __FILE__, 'update_db_after_update' );
-
