@@ -3,42 +3,6 @@
  * This file contains general functions to use in themes or other plugins.
  */
 
-/**
- * Get the general options saved for the plugin.
- *
- * @return array associative array with the options for the plugin.
- */
-function uls_get_options(){
-  //get the general options
-  $options = get_option('uls_settings');
-
-  //default values
-  $defaults = array(
-    'default_backend_language' => null,
-    'default_frontend_language' => null,
-    'user_backend_configuration' => true,
-    'user_frontend_configuration' => true,
-    'backend_language_field_name' => 'uls_backend_language',
-    'frontend_language_field_name' => 'uls_frontend_language',
-    'url_type' => 'prefix',
-  );
-
-  //merge with default values
-  return array_merge($defaults, $options);
-}
-
-/**
- * Return the permalink of the translation link of a post.
- *
- * @param $post_id integer id of post.
- * @param $language string language of translation. If it is null or invalid, current language loaded in the page is used.
- *
- * @return string the permalink of the translation link of a post.
- */
-function uls_get_permalink($post_id, $language = null){
-   $translation_id = uls_get_post_translation_id($post_id, $language);
-   return empty($translation_id) ? get_permalink($post_id) : get_permalink($translation_id);
-}
 
 /**
  * Add shortcode to get link.
