@@ -45,7 +45,7 @@ class xs_translate_options
                 add_action("admin_menu", array($this, "register_menu"));
                 add_action("admin_init", array($this, "init_settings"));
                 $this->options = get_option('xs_translate_options', $this->default_options);
-                $this->options['available_languages'] = xs_framework::get_option('available_languages');
+                $this->options['available_languages'] = xs_framework::get_available_language();
         }
 
    /**

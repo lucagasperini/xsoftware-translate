@@ -40,6 +40,43 @@ function uls_init_plugin(){
         }
 }
 
+/**
+ * Get the general options saved for the plugin.
+ *
+ * @return array associative array with the options for the plugin.
+ */
+function uls_get_options(){
+  //get the general options
+  $options = get_option('uls_settings');
+
+  //default values
+  $defaults = array(
+    'default_backend_language' => null,
+    'default_frontend_language' => null,
+    'user_backend_configuration' => true,
+    'user_frontend_configuration' => true,
+    'backend_language_field_name' => 'uls_backend_language',
+    'frontend_language_field_name' => 'uls_frontend_language',
+    'url_type' => 'prefix',
+  );
+
+  //merge with default values
+  return array_merge($defaults, $options);
+}
+
+/**
+ * Return the permalink of the translation link of a post.
+ *
+ * @param $post_id integer id of post.
+ * @param $language string language of translation. If it is null or invalid, current language loaded in the page is used.
+ *
+ * @return string the permalink of the translation link of a post.
+ */
+function uls_get_permalink($post_id, $language = null){
+   $translation_id = uls_get_post_translation_id($post_id, $language);
+   return empty($translation_id) ? get_permalink($post_id) : get_permalink($translation_id);
+}
+
 
 /**
  * This function gets the language from the URL, if there is no language in the URL, then it gets language from settings saved by the user in the back-end side. 
@@ -188,6 +225,75 @@ function uls_get_post_language($id)
         return $postLanguage;
 }
 
+add_action('wp_footer', 'tap_user_language_switch');
+// uls-tab-user-language-switch include the template to show flags
+function tap_user_language_switch() {
+  $options = get_option('uls_settings');
+
+  if( isset($options['activate_tab_language_switch']) && $options['activate_tab_language_switch']){
+
+    $languages = xs_framework::get_available_language();
+    $position = $options['tab_position_language_switch'];
+
+    if ( is_home() || is_archive() || is_search() || is_category() || is_tag() || is_author() || is_date() )
+      $postId = null;
+    else
+      $postId = get_post()->ID;
+
+    include('uls-tab-template.php');
+  }
+}
+
+/**
+ * Return the HTML link of the translation of a post.
+ *
+ * @param $post_id integer id of post. If it is null, then it converts the current URL with the language specified.
+ * @param $language string language of translation. If it is null or invalid, current language loaded in the page is used.
+ * @param $label string inner text of the link.
+ * @param $class string text to include as class parameter in the link
+ *
+ * @return string the HTML link of the translation link of a post.
+ */
+function uls_get_link($post_id = null, $language = null, $label = null, $class='uls-link' ){
+        // instance the atribute
+        $translation_url = "";
+
+        if ($post_id == null) {
+                if (is_home() || is_front_page() || is_archive() || is_author() || is_category() || is_tag() || is_date()) {
+                        $url = xs_framework::get_browser_url();
+                        $translation_url = uls_get_url_translated($url, $language);
+                }
+        } else {
+        $translation_id = uls_get_post_translation_id($post_id, $language);
+        if(empty($translation_id))
+                $translation_id = $post_id;
+
+        //set conversion of permalinks to true
+        global $uls_permalink_convertion;
+        $uls_permalink_convertion = true;
+
+        $translation_url = uls_get_url_translated(get_permalink($translation_id), $language);
+
+        //reset conversion of permalinks
+        $uls_permalink_convertion = false;
+
+        $title = get_the_title($translation_id);
+        }
+  
+        if (!empty($_GET)) {
+                $translation_url .= "?";
+                foreach($_GET as $key => $value)
+                        $translation_url .=  $key . "=" . $value.'&';
+        }
+
+        if(null == $label)
+                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $title . 
+'</a>';
+        else
+                return '<a onclick="cookie_language_changed(\'' . $language . '\');" class="' . $class . '" href="' . $translation_url . '" >' . $label . 
+'</a>';
+}
+
 /**
  * Add meta boxes to select the language an traductions of a post.
  *
@@ -204,7 +310,7 @@ function uls_language_metaboxes( $meta_boxes ) {
       }
    }
    $prefix = 'uls_'; // Prefix for all fields
-   $languages = xs_framework::get_option('available_languages');
+   $languages = xs_framework::get_available_language();
    $options = array(array('name'=>'Select one option', 'value'=>''));
    require 'uls-languages.php';
    $fields = array();
@@ -550,7 +656,7 @@ function head_reference_translation() {
   $post_id = url_to_postid($url);
 
   // get all available languages
-  $languages = xs_framework::get_option('available_languages');
+  $languages = xs_framework::get_available_language();
   $curren_code = xs_framework::get_user_language(); // get current language
   // delete the current language site
   $code_value = array_search($curren_code, $languages);
