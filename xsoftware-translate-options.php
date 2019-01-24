@@ -7,10 +7,6 @@ class xs_translate_options
         private $default_options = array(
         'user_backend_configuration' => TRUE,
         'user_frontend_configuration' => TRUE,
-        'default_backend_language' => 'en',
-        'default_frontend_language' => 'en',
-        'backend_language_field_name' => 'uls_backend_language',
-        'frontend_language_field_name' => 'uls_frontend_language',
         'activate_tab_language_switch' => TRUE,
         'tab_color_picker_language_switch' => 'rgba(255, 255, 255, 0)',
         'tab_position_language_switch' => 'RM',
