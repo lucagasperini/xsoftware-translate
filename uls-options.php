@@ -258,19 +258,21 @@ class xs_translate_options
         * Create the HTML of a table with languages lits.
         * @param $options array plugin options saved.
         */
-        static function create_table_menu_language($option) {
-                $languages = uls_get_available_languages(); // get the all languages available in the wp
+        static function create_table_menu_language($option) 
+        {
+                // get the all languages available in the wp
+                $languages = xs_framework::get_available_language(array('language' => FALSE, 'english_name' => TRUE));
                 $menus = get_terms( 'nav_menu', array( 'hide_empty' => true ) ); // get menues
                 foreach ($menus as $menu ) {
                         $data_menu[$menu->slug] = $menu->name;
                 }
         
-                foreach ($languages as $language_name => $language_code ) {
-                        $headers[]  = $language_name;
+                foreach ($languages as $code => $name ) {
+                        $headers[]  = $name;
                         $data_table[0][] = xs_framework::create_select( array(
-                                'name' => 'xs_translate_options[menu]['.$language_code.']', 
+                                'name' => 'xs_translate_options[menu]['.$code.']', 
                                 'data' => $data_menu, 
-                                'selected' => $this->options['menu'][$language_code],
+                                'selected' => $this->options['menu'][$code],
                                 'return' => true
                         ));
                 }

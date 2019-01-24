@@ -409,7 +409,7 @@ function uls_save_association( $post_id ) {
   if($parent_id === false)
    $parent_id = $post_id;
 
-  $languages = uls_get_available_languages();
+  $languages = xs_framework::get_available_language();
   $selected_language = isset($_POST['uls_language']) ? $_POST['uls_language'] : null;
 
   // get array post metas because we need the uls_language and uls_translation
