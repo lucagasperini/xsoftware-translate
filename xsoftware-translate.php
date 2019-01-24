@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: User Language Switch
-Description: Build a multilingual and SEO friendly website. Linking translations of content and allow visitors to browse your website in different languages.
+Plugin Name: XSoftware Translate
+Description: Build a multilingual website. Linking translations of content and allow visitors to browse your website in different languages.
 Version: 1.7
 Author: XSoftware
 Author URI: http://www.xsoftware.it
