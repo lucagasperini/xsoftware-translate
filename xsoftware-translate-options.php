@@ -247,11 +247,12 @@ class xs_translate_options
   */
   function register_menu()
   {
-        add_submenu_page('xsoftware', __('User Language Switch','user-language-switch'),
-        __('User Language Switch','user-language-switch'),
-        'manage_options', 'uls-settings-page',
+        add_submenu_page('xsoftware', 'Translate',
+        'Translate',
+        'manage_options', 'xsoftware-translate',
         'xs_translate_options::create_settings_page');
   }
+
 
 
         /**
@@ -387,7 +388,7 @@ website.", 'user-language-switch');
     // configurate the url with your personal_url and add the class for the activate tab
     foreach( $tabs as $tab => $name ){
         $class = ( $tab == $current ) ? ' nav-tab-active' : '';
-        echo "<a class='nav-tab$class' href='?page=uls-settings-page&tab=$tab'>$name</a>";
+        echo "<a class='nav-tab$class' href='?page=xsoftware-translate&tab=$tab'>$name</a>";
     }
     echo '</h2>';
    }
