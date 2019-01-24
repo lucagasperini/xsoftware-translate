@@ -427,19 +427,7 @@ website.", 'user-language-switch');
 
 $xs_translate_options = new xs_translate_options();
 /**
- * Add Settings link to plugin admin page
- */
-add_filter('plugin_action_links_' . ULS_PLUGIN_NAME, 'xs_translate_options::create_settings_link');
-/**
- * Add default settings for the plugin.
- */
-register_activation_hook(ULS_FILE_PATH, 'xs_translate_options::init_plugin');
-/**
  * Add ajax action to save user language preferences.
  */
 add_filter('wp_nav_menu_items', 'xs_translate_options::select_correct_menu_language', 10, 2);
 
-/**
- * Add ajax action to download a specific language
- */
-add_action('wp_ajax_uls_download_language', 'xs_translate_options::download_language');

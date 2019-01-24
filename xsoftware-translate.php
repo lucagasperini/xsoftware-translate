@@ -11,12 +11,6 @@ License: GPL3
 ?>
 <?php
 
-define( 'ULS_PLUGIN_URL', plugin_dir_url(__FILE__) );
-define( 'ULS_PLUGIN_PATH', plugin_dir_path(__FILE__) );
-define( 'ULS_PLUGIN_NAME', plugin_basename(__FILE__) );
-define( 'ULS_FILE_PATH', __FILE__ );
-
-
 /**
  * This function intis the plugin. It check the language in the URL, the language in the browser and the language in the user preferences to redirect the user to the correct page with translations.
  *
