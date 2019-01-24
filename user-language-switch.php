@@ -25,7 +25,6 @@ define( 'ULS_FILE_PATH', __FILE__ );
 add_action('init', 'uls_init_plugin');
 function uls_init_plugin(){
         include 'uls-options.php';
-        include 'codes.php';
         
         if(is_admin()) return;
         //load translation
@@ -163,46 +162,6 @@ function uls_get_url_translated($url, $language = NULL)
         return $offset;
 }
 
-
-/**
- * This function creates an HTML select input with the available languages for the site.
- * @param $id string id of the HTML element.
- * @param $name string name of the HTML element.
- * @param $default_value string value of the default selected option.
- * @param $class string CSS classes for the HTML element.
- * @param $available_language boolean "true" to return only the available lagunage "false" return all language in the wp.
- *
- * @return string HTML code of the language selector input.
- */
-function uls_language_selector_input($id, $name, $default_value = '', $class = '', $available_languages = true){ //FIXME: remove function!
-   //get available languages
-   $available_languages = uls_get_available_languages($available_languages);
-
-   //get language names
-   require 'uls-languages.php';
-
-   //create HTML input
-   ob_start();
-   ?>
-   <select id="<?php echo $id; ?>" name="<?php echo $name; ?>" class="<?php echo $class; ?>" >
-      <?php foreach($available_languages as $lang):
-      $language_name = $lang;
-      if(!empty($country_languages[$lang]))
-        $language_name = $country_languages[$lang];
-      else{
-        $aux_name = array_search($lang, $language_codes);
-        if(false !== $aux_name)
-          $language_name = $aux_name;
-      } ?>
-      <option value="<?php echo $lang; ?>" <?php selected($lang, $default_value); ?>><?php _e($language_name,'user-language-switch'); ?></option>
-      <?php endforeach; ?>
-   </select>
-   <?php
-   $res = ob_get_contents();
-   ob_end_clean();
-   return $res;
-}
-
 /**
  * Get the language of a post.
  *
@@ -223,25 +182,6 @@ function uls_get_post_language($id)
         }
 
         return $postLanguage;
-}
-
-add_action('wp_footer', 'tap_user_language_switch');
-// uls-tab-user-language-switch include the template to show flags
-function tap_user_language_switch() {
-  $options = get_option('uls_settings');
-
-  if( isset($options['activate_tab_language_switch']) && $options['activate_tab_language_switch']){
-
-    $languages = xs_framework::get_available_language();
-    $position = $options['tab_position_language_switch'];
-
-    if ( is_home() || is_archive() || is_search() || is_category() || is_tag() || is_author() || is_date() )
-      $postId = null;
-    else
-      $postId = get_post()->ID;
-
-    include('uls-tab-template.php');
-  }
 }
 
 /**
@@ -312,17 +252,9 @@ function uls_language_metaboxes( $meta_boxes ) {
    $prefix = 'uls_'; // Prefix for all fields
    $languages = xs_framework::get_available_language();
    $options = array(array('name'=>'Select one option', 'value'=>''));
-   require 'uls-languages.php';
    $fields = array();
    foreach ( $languages as $lang ){
       $language_name = $lang;
-      if(!empty($country_languages[$lang]))
-        $language_name = $country_languages[$lang];
-      else{
-        $aux_name = array_search($lang, $language_codes);
-        if(false !== $aux_name)
-          $language_name = $aux_name;
-      }
 
       $new = array('name' => $language_name, 'value' => $lang);
       array_push($options, $new);
