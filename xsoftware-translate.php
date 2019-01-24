@@ -24,7 +24,7 @@ define( 'ULS_FILE_PATH', __FILE__ );
  */
 add_action('init', 'uls_init_plugin');
 function uls_init_plugin(){
-        include 'uls-options.php';
+        include 'xsoftware-translate-options.php';
         
         if(is_admin()) return;
         //load translation
