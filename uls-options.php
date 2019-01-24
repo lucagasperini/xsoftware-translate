@@ -398,10 +398,30 @@ website.", 'user-language-switch');
                 $menu_name = $args->menu;
                 $user_lang = xs_framework::get_user_language();
                 $menu = isset($options['menu'][$user_lang]) ? $options['menu'][$user_lang] : '';
+                
+                $items = xs_translate_options::print_select_menu_language($items);
+                
                 if($menu_name == $menu)
                         return $items;
                 else
                         return wp_nav_menu( array( 'menu' => $menu, 'items_wrap' => '%3$s' , 'container' => false, 'echo' => false) );
+        }
+        
+        static function print_select_menu_language($items)
+        {
+                $offset = '';
+                $offset .= '<li>';
+                $offset .= '<select id="xs_translate_select_language" onchange="xs_translate_select_language()">';
+                $languages = xs_framework::get_available_language();
+                $current_lang = xs_framework::get_user_language();
+                foreach($languages as $code => $name)
+                        if($current_lang != $code)
+                                $offset .= '<option value="'.$code.'">'.$name.'</option>';
+                        else
+                                $offset .= '<option value="'.$code.'" selected>'.$name.'</option>';
+                        
+                $offset .= '</select></li>';
+                return $items . $offset;
         }
 }
 
