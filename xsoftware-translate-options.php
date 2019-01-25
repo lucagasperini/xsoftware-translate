@@ -1,4 +1,8 @@
 <?php
+
+if(!defined("ABSPATH")) exit;
+
+if (!class_exists("xs_translate_options")) :
 /**
  * This class control plugin settings.
  */
@@ -427,4 +431,4 @@ $xs_translate_options = new xs_translate_options();
  * Add ajax action to save user language preferences.
  */
 add_filter('wp_nav_menu_items', 'xs_translate_options::select_correct_menu_language', 10, 2);
-
+endif;
