@@ -25,6 +25,8 @@ function uls_init_plugin(){
         $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
         load_plugin_textdomain( 'user-language-switch', false, $plugin_dir );
         
+        wp_enqueue_script('xs_translate_scripts', plugins_url('js/functions.js', __FILE__));
+        
         if(isset($_COOKIE['xs_framework_user_language'])) {
                 //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
                 uls_redirect_by_language($_COOKIE['xs_framework_user_language']);
@@ -420,20 +422,6 @@ function uls_add_styles() {
   wp_enqueue_style( 'webilop-flags_16x11-style', plugins_url('css/flags/flags_16x11.css', __FILE__) );
 }
 add_action( 'admin_enqueue_scripts', 'uls_add_styles' );
-
-/**
- * Register javascript file
- */
-function uls_add_scripts() {
-    wp_register_script( 'add-bx-js',   WP_CONTENT_URL . '/plugins/user-language-switch/js/js_script.js', array('jquery') );
-    wp_enqueue_script( 'add-bx-js' );
-    wp_enqueue_script( 'add_alert_select_js',   WP_CONTENT_URL . '/plugins/user-language-switch/js/event_select.js', array('jquery') );
-    // make the ajaxurl var available to the above script
-    wp_localize_script( 'add-bx-js', 'the_ajax_script', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
-    wp_enqueue_style( 'webilop-flags_32x32-style', plugins_url('css/flags/flags_32x32.css', __FILE__) );
-    wp_enqueue_style( 'uls-public-css', plugins_url('css/public.css', __FILE__) );
-}
-add_action( 'wp_enqueue_scripts', 'uls_add_scripts' );
 
 
 add_filter('manage_posts_columns', 'uls_add_columns');
