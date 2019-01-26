@@ -30,13 +30,18 @@ user to the correct page with translations.
         *
         * 1. This function first check the language configured in the user browser and redirects the user to the correct language version of the website.
         */
-        function __construct(){
+        function __construct()
+        {
+                add_action( 'add_meta_boxes', array($this, 'metaboxes'));
+                add_action( 'save_post', array($this,'metaboxes_save'));
+                
+                $this->options = get_option('xs_translate_options');
+                
                 if(is_admin()) return;
                 //load translation
                 $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
                 load_plugin_textdomain( 'user-language-switch', false, $plugin_dir );
                 
-                $this->options = get_option('xs_translate_options');
                 
                 if(isset($_COOKIE['xs_framework_user_language'])) {
                         //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
@@ -44,16 +49,75 @@ user to the correct page with translations.
                 } else {
                         $this->uls_translate_by_google();
                 }
-                add_action( 'wp_enqueue_scripts', array($this, 'enqueue_scripts'));  
-                add_action( 'save_post', array($this, 'uls_save_association'));
-                //add_filter( 'cmb_meta_boxes', array($this, 'uls_language_metaboxes'));
-                add_action('wp_ajax_test_response', array($this, 'uls_text_ajax_process_request'));
+                add_action( 'wp_enqueue_scripts', array($this, 'enqueue_scripts')); 
                 add_filter('manage_posts_columns', array($this, 'uls_add_columns'));
                 add_filter('manage_pages_columns', array($this, 'uls_add_columns'));
                 add_action('manage_posts_custom_column',  array($this, 'uls_show_columns'));
                 add_action('manage_pages_custom_column',  array($this, 'uls_show_columns'));
                 add_action('pre_get_posts', array($this, 'uls_filter_archive_by_language'));
                 add_action('wp_head',  array($this, 'head_reference_translation'));
+                
+        }
+        
+        function metaboxes()
+        {
+                add_meta_box( 'xs_translate_metaboxes', 'XSoftware Translate', array($this,'metaboxes_print'), array('post', 'page'),'advanced','high');
+        }
+        
+        function metaboxes_print()
+        {
+                global $post;
+                $values = get_post_custom( $post->ID );
+                $lang = isset( $values['xs_translate_language'][0] ) ? $values['xs_translate_language'][0] : '';
+                $native = isset( $values['xs_translate_native_post'][0] ) ? intval($values['xs_translate_native_post'][0]) : '';
+
+                $the_posts = get_posts(  array(
+                        'post_type' => get_post_type($post->ID),
+                        'meta_query' => array( array (
+                                        'key' => 'xs_translate_language',
+                                        'value' => $this->options['native_language'],
+                                        'compare'=> '='
+                                        )
+                        ),
+                        'posts_per_page' => -1,
+                ));
+               
+                $post_list = array();
+                foreach ($the_posts as $post) {
+                        $post_list[$post->ID] = $post->post_title;
+                }
+                array_unshift($post_list, 'Select a Post');
+
+                $languages = xs_framework::get_available_language();
+                array_unshift($languages, 'Select a Language');
+                
+                $data[0][0] = 'Post Language:';
+                $data[0][1] = xs_framework::create_select( array(
+                        'name' => 'xs_translate_language', 
+                        'selected' => $lang, 
+                        'data' => $languages, 
+                        'return' => true
+                ));
+                
+                if($this->options['native_language'] !== $lang) {
+                        $data[1][0] = 'Native Post:';
+                        $data[1][1] = xs_framework::create_select( array(
+                                'name' => 'xs_translate_native_post', 
+                                'selected' => $native,
+                                'data' => $post_list, 
+                                'return' => true
+                        ));
+                }
+                
+                xs_framework::create_table(array('data' => $data)); //FIXME: 100% width
+        }
+        
+        function metaboxes_save($post_id)
+        {
+                if( isset( $_POST['xs_translate_language'] ) )
+                        update_post_meta( $post_id, 'xs_translate_language', $_POST['xs_translate_language'] );
+                if( isset( $_POST['xs_translate_native_post'] ) )
+                        update_post_meta( $post_id, 'xs_translate_native_post', $_POST['xs_translate_native_post'] );
         }
         
         function enqueue_scripts()
@@ -185,186 +249,6 @@ user.
                 return $postLanguage;
         }
 
-        /**
-        * Add meta boxes to select the language an traductions of a post.
-        *
-        * @return array
-        */
-/*        function uls_language_metaboxes( $meta_boxes ) {
-        if(isset($_GET['post'])){
-        $post_type = get_post_type($_GET['post']);
-        }else{
-        if(isset($_GET['post_type'])){
-                $post_type = $_GET['post_type'];
-        }else{
-                $post_type = 'post';
-        }
-        }
-        $prefix = 'uls_'; // Prefix for all fields
-        $languages = xs_framework::get_available_language();
-        $options = array(array('name'=>'Select one option', 'value'=>''));
-        $fields = array();
-        foreach ( $languages as $lang ){
-        $language_name = $lang;
-
-        $new = array('name' => $language_name, 'value' => $lang);
-        array_push($options, $new);
-        $t1 = get_posts(array(
-                'post_type' => $post_type,
-                'meta_query' => array(
-                array (
-                        'key' => 'uls_language',
-                        'value'=>array($lang),
-                )
-                ),
-                'posts_per_page' => -1,
-        ));
-        $t2 = get_posts(array(
-                'post_type' => $post_type,
-                'meta_query' => array(
-                array (
-                        'key' => 'uls_language',
-                        'compare'=> 'NOT EXISTS',
-                )
-                ),
-                'posts_per_page' => -1,
-        ));
-        $the_posts = array_merge( $t1, $t2 );
-
-        $posts = array(array('name'=>'Select the translated post', 'value'=>''));
-        foreach ($the_posts as $post):
-                $post = array('name'=>$post->post_title, 'value'=>$post->ID);
-                array_push($posts, $post);
-        endforeach;
-        wp_reset_query();
-        $field = array(
-                'name' => 'Select the version in '. $language_name,
-                'id' => $prefix.'translation_'.strtolower($lang),
-                'type' => 'select',
-                'options' => $posts
-        );
-        array_push($fields, $field);
-        }
-
-        array_unshift($fields, array('name' => 'Select a language',
-                                        'id' => $prefix . 'language',
-                                        'type' => 'select',
-                                        'options' => $options));
-        //   $fields[] = array(
-        //             'name' => 'Select a language',
-        //             'id' => $prefix . 'language',
-        //             'type' => 'select',
-        //             'options' => $options,
-        //          );
-
-        $args=array(
-        'public'   => true,
-        '_builtin' => false
-        );
-        $output = 'names'; // names or objects, note names is the default
-        $operator = 'and'; // 'and' or 'or'
-        $custom_post_types = get_post_types($args,$output,$operator);
-        $add_to_posts = array('page','post');
-        if(!empty($custom_post_types)):
-        foreach ($custom_post_types as $custom):
-        array_push($add_to_posts, $custom);
-        endforeach;
-        endif;
-        $meta_boxes[] = array(
-        'id' => 'language',
-        'title' => 'Language',
-        'pages' => $add_to_posts, // post type
-        'context' => 'normal',
-        'priority' => 'high',
-        'show_names' => true, // Show field names on the left
-        'fields' => $fields
-        );
-        return $meta_boxes;
-        }
-        */
-
-        /**
-        * Save language associations
-        */
-        function uls_save_association( $post_id ) {
-        //verify post is a revision
-        $parent_id = wp_is_post_revision( $post_id );
-        if($parent_id === false)
-        $parent_id = $post_id;
-
-        $languages = xs_framework::get_available_language();
-        $selected_language = isset($_POST['uls_language']) ? $_POST['uls_language'] : null;
-
-        // get array post metas because we need the uls_language and uls_translation
-        $this_post_metas = get_post_meta( $parent_id );
-        $this_uls_translation = !empty($this_post_metas) ?  isset($this_post_metas['uls_language']) ? 
-        'uls_translation_'.strtolower($this_post_metas['uls_language'][0]) : '' : '';
-        // if the language of this page change so change the all pages that have this like a traduction
-        if ($selected_language != $this_uls_translation) {
-        // get post that have this traduction
-        $args =  array('post_type' => get_post_type($parent_id),
-                        'meta_key' => $this_uls_translation,
-                        'meta_value' => $parent_id,
-                        'meta_compare' => '=');
-        $query = new WP_Query($args);
-
-        // if the query return the post that have assocciate the translation this page,
-        // delete the old post_meta uls_translation_#_#
-        if ( !empty($query->posts) ) {
-        // we need only the IDs of the post query
-        foreach ($query->posts as $key) {
-                // delete the old post_meta uls_translation_#_#
-                delete_post_meta ($key->ID, $this_uls_translation);
-                // if selected_language is not empty so add the new traduction
-                if (!empty($selected_language)) {
-                // get the new post meta if this exits does update the uls_translation
-                $page_post_meta = get_post_meta ($key->ID, 'uls_translation_'.strtolower($selected_language), true);
-                // ask if the new post_meta uls_translation_#_# exits
-                if ( empty($page_post_meta) )
-                update_post_meta ( $key->ID, 'uls_translation_'.strtolower($selected_language), $parent_id );
-                }
-        }
-        }
-        }
-        if (!empty($selected_language)) {
-        // if the language change so change the traduction
-        foreach ($languages as $lang) {
-        $related_post = isset($_POST['uls_translation_'.strtolower($lang)]) ? $_POST['uls_translation_'.strtolower($lang)] : null;
-        if( !empty( $related_post ) ) {
-                // add traduction to the page that was selected like a translation
-                $related_post_meta_translation = get_post_meta( $related_post, 'uls_translation_'.strtolower($selected_language), true );
-                if ( empty ( $related_post_meta_translation ) )
-                update_post_meta ( $related_post, 'uls_translation_'.strtolower($selected_language), $parent_id );
-                // add language to the page that was selected like a tranlation. If the page doesn't has associated a languages
-                $related_post_get_language = get_post_meta( $related_post, 'uls_language', true );
-                if ( empty ( $related_post_get_language) )
-                update_post_meta ( $related_post, 'uls_language', $lang );
-
-        }
-        }
-        }
-
-        }
-        
-
-        /**
-        * Remove associations
-        */
-        function uls_text_ajax_process_request() {
-        // first check if data is being sent and that it is the data we want
-        $relation_id = $_POST['pid'];
-        $lang = $_POST['lang'];
-        $post_id = $_POST['post'];
-        $meta = $_POST['meta'];
-        if ( isset( $_POST["pid"] ) ) {
-        // now set our response var equal to that of the POST varif(isset($relation_id)){
-        delete_post_meta( $relation_id, 'uls_translation_'.$lang );
-        delete_post_meta( $post_id, $meta );
-        // send the response back to the front end
-        echo $relation_id.'-'.$lang.'-'.$post_id.'-'.$meta;
-        die();
-        }
-        }
 
         function uls_add_columns($columns) {
         unset($columns['date']);

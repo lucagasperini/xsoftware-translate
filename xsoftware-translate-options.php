@@ -19,6 +19,7 @@ class xs_translate_options
         'automatic_redicted_ssl' => TRUE,
         'enable_translation_sidebars_language_switch' => TRUE,
         'languages_filter_enable' => array('post' => 'post', 'page' => 'page'),
+        'native_language' => 'en_GB'
         );
         
         private $options = NULL;
@@ -72,6 +73,19 @@ class xs_translate_options
         __('General Settings','user-language-switch'),
         'xs_translate_options::create_general_settings_section',
         'uls-settings-page');
+        
+        $options = array( 
+                'name' => 'xs_translate_options[native_language]', 
+                'selected' => $this->options['native_language'],
+                'data' => xs_framework::get_available_language()
+        );
+        
+        add_settings_field($options['name'],
+        __('Select a native language','user-language-switch'),
+        'xs_framework::create_select',
+        'uls-settings-page',
+        'uls_general_settings_section',
+        $options);
         
         $options = array( 
                 'name' => 'xs_translate_options[automatic_redicted_ssl]', 
@@ -238,6 +252,7 @@ class xs_translate_options
                         $options['use_google_translate']            =   isset($input['use_google_translate']);
                         $options['automatic_redicted_ssl']        = isset($input['automatic_redicted_ssl']);
                         $options['enable_translation_sidebars_language_switch'] = isset($input['enable_translation_sidebars_language_switch']);
+                        $options['native_language'] = $input['native_language'];
                 }
                 return $options;
         }
