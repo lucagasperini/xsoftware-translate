@@ -32,8 +32,16 @@ user to the correct page with translations.
         */
         function __construct()
         {
-                add_action( 'add_meta_boxes', array($this, 'metaboxes'));
-                add_action( 'save_post', array($this,'metaboxes_save'));
+                add_action('add_meta_boxes', array($this, 'metaboxes'));
+                add_action('save_post', array($this,'metaboxes_save'));
+                add_filter('manage_posts_columns', array($this, 'add_columns'));
+                add_filter('manage_pages_columns', array($this, 'add_columns'));
+                add_action('manage_posts_custom_column',  array($this, 'show_columns'));
+                add_action('manage_pages_custom_column',  array($this, 'show_columns'));
+                add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
+                add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+                add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+                //add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'));
                 
                 $this->options = get_option('xs_translate_options');
                 
@@ -49,11 +57,6 @@ user to the correct page with translations.
                 } else {
                         $this->uls_translate_by_google();
                 }
-                add_action( 'wp_enqueue_scripts', array($this, 'enqueue_scripts')); 
-                add_filter('manage_posts_columns', array($this, 'uls_add_columns'));
-                add_filter('manage_pages_columns', array($this, 'uls_add_columns'));
-                add_action('manage_posts_custom_column',  array($this, 'uls_show_columns'));
-                add_action('manage_pages_custom_column',  array($this, 'uls_show_columns'));
                 add_action('pre_get_posts', array($this, 'uls_filter_archive_by_language'));
                 add_action('wp_head',  array($this, 'head_reference_translation'));
                 
@@ -120,9 +123,46 @@ user to the correct page with translations.
                         update_post_meta( $post_id, 'xs_translate_native_post', $_POST['xs_translate_native_post'] );
         }
         
+        function enqueue_styles()
+        {
+                wp_enqueue_style('xs_translate_style_flag', plugins_url('flag-icon-css/css/flag-icon.min.css', __FILE__));
+                wp_enqueue_style('xs_translate_style', plugins_url('css/style.css', __FILE__));
+        }
+        
         function enqueue_scripts()
         {
                 wp_enqueue_script('xs_translate_scripts', plugins_url('js/functions.js', __FILE__));
+        }
+        
+        function select_correct_menu_language($items, $args) 
+        {
+                $menu_name = $args->menu;
+                $user_lang = xs_framework::get_user_language();
+                $menu = isset($this->options['menu'][$user_lang]) ? $this->options['menu'][$user_lang] : '';
+                
+                $items = $this->print_select_menu_language($items);
+                
+                if($menu_name == $menu)
+                        return $items;
+                else
+                        return wp_nav_menu( array( 'menu' => $menu, 'items_wrap' => '%3$s' , 'container' => false, 'echo' => false) );
+        }
+        
+        function print_select_menu_language($items)
+        {
+                $offset = '';
+                $offset .= '<li>';
+                $offset .= '<select class="languagepicker" id="xs_translate_select_language" onchange="xs_translate_select_language()">';
+                $languages = xs_framework::get_available_language();
+                $current_lang = xs_framework::get_user_language();
+                foreach($languages as $code => $name)
+                        if($current_lang != $code)
+                                $offset .= '<option value="'.$code.'">'.$name.'</option>';
+                        else
+                                $offset .= '<option value="'.$code.'" selected>'.$name.'</option>';
+                        
+                $offset .= '</select></li>';
+                return $items . $offset;
         }
 
 
@@ -250,22 +290,19 @@ user.
         }
 
 
-        function uls_add_columns($columns) {
-        unset($columns['date']);
-        $columns['language'] = 'Language';
-        $columns['date'] = 'Date';
-        return $columns;
+        function add_columns($columns) 
+        {
+                $columns['language'] = 'Language';
+                return $columns;
         }
 
-        function uls_show_columns($name) {
-        global $post;
-        $string = "";
-        $views = get_post_meta($post->ID, 'uls_language', true);
-        $printFlag = '<img src="'.plugins_url("css/blank.gif", __FILE__).'"';
-        $printFlag .= 'style="margin-right:5px;"';
-        $printFlag .= 'class="flag_16x11 flag-'.Codes::languageCode2CountryCode($views).'"';
-        $printFlag .= 'alt="'.$views.'" title="'.$views.'" />';
-        echo $printFlag;
+        function show_columns($name) 
+        {
+                global $post;
+                $code = get_post_meta($post->ID, 'xs_translate_language', true);
+                $iso = xs_framework::get_available_language(array('english_name' => FALSE, 'iso' => TRUE));
+                if(isset($iso[$code]))
+                        echo '<span class="flag-icon flag-icon-'.$iso[$code].'"></span>';
         }
 
         /**
