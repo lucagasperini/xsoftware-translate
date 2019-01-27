@@ -89,17 +89,16 @@ user to the correct page with translations.
                 foreach ($the_posts as $post) {
                         $post_list[$post->ID] = $post->post_title;
                 }
-                array_unshift($post_list, 'Select a Post');
 
                 $languages = xs_framework::get_available_language();
-                array_unshift($languages, 'Select a Language');
                 
                 $data[0][0] = 'Post Language:';
                 $data[0][1] = xs_framework::create_select( array(
                         'name' => 'xs_translate_language', 
                         'selected' => $lang, 
                         'data' => $languages, 
-                        'return' => true
+                        'return' => true,
+                        'default' => 'Select a Language'
                 ));
                 
                 if($this->options['native_language'] !== $lang) {
@@ -108,7 +107,8 @@ user to the correct page with translations.
                                 'name' => 'xs_translate_native_post', 
                                 'selected' => $native,
                                 'data' => $post_list, 
-                                'return' => true
+                                'return' => true,
+                                'default' => 'Select a Post'
                         ));
                 }
                 
@@ -230,16 +230,66 @@ user.
         *
         * @return mixed it returns id of translation post as an integer or false if translation doesn't exist.
         */
-        function uls_get_post_translation_id($post_id, $language = null)
+        function get_post_translation_id($post_id, $language = null)
         {
-                $language = xs_framework::get_user_language();
+                $user_language = xs_framework::get_user_language();
 
                 //get the translation of the post
-                $post_language = $this->uls_get_post_language($post_id);
+                $post_language = $this->get_post_language($post_id);
 
                 //if the language of the post is the same language of the translation
-                if($post_language == $language)
-                return $post_id;
+                if($post_language == $user_language)
+                        return $post_id;
+                
+                $values = get_post_custom( $post_id );
+                $lang = isset( $values['xs_translate_language'][0] ) ? $values['xs_translate_language'][0] : '';
+                $native = isset( $values['xs_translate_native_post'][0] ) ? intval($values['xs_translate_native_post'][0]) : '';
+                        
+                if($post_language == $this->options['native_language'])
+                {
+                        $lang_query = array(
+                                array(
+                                        'key' => 'xs_translate_language',
+                                        'value' => $user_language,
+                                        'compare' => '='
+                                )
+                        );
+                        $native_query = array( 
+                                array (
+                                        'key' => 'xs_translate_native_post',
+                                        'value' => $post_id,
+                                        'compare'=> '='
+                                )
+                        );
+                        
+                        $meta_query = array(
+                                'relation' => 'AND',
+                                $lang_query,
+                                $native_query
+                        );
+                        
+                        $the_posts = get_posts(  array(
+                                'post_type' => get_post_type($post_id),
+                                'meta_query' => $meta_query,
+                                'posts_per_page' => -1,
+                        ));
+                        var_dump($the_posts);
+                } else
+                {
+                        $lang_query = array(
+                                array(
+                                        'key' => 'xs_translate_language',
+                                        'value' => $user_language,
+                                        'compare' => '='
+                                )
+                        );
+                        
+                        $the_posts = get_post($native);
+                        var_dump($the_posts, $lang, $native);
+                }
+                
+                        
+                
 
                 //get the translation
                 $translation = get_post_meta($post_id, 'uls_translation_' . $language, true);
@@ -261,7 +311,7 @@ user.
                 $page_id = url_to_postid($url);
                 if($page_id == 0)
                         return $url;
-                $translation_id = $this->uls_get_post_translation_id($page_id, $language);
+                $translation_id = $this->get_post_translation_id($page_id, $language);
                 $offset = get_permalink($translation_id);
                         
                 return $offset;
@@ -274,17 +324,9 @@ user.
         *
         * @return string the code of the language or an empty string if the post doesn't have a language.
         */
-        function uls_get_post_language($id)
+        function get_post_language($id)
         {
-                $postLanguage = get_post_meta($id, 'uls_language', true);
-                if("" == $postLanguage) 
-                        return "";
-
-                //format the language code
-                $p = strpos($postLanguage, "_");
-                if($p !== false){
-                        $postLanguage = substr($postLanguage, 0, $p) . strtoupper(substr($postLanguage, $p));
-                }
+                $postLanguage = get_post_meta($id, 'xs_translate_language', true);
 
                 return $postLanguage;
         }
