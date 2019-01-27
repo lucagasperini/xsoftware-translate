@@ -39,9 +39,6 @@ user to the correct page with translations.
                 add_action('manage_posts_custom_column',  array($this, 'show_columns'));
                 add_action('manage_pages_custom_column',  array($this, 'show_columns'));
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
-                add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
-                add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-                add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'), 10, 2);
                 
                 $this->options = get_option('xs_translate_options');
                 
@@ -57,8 +54,11 @@ user to the correct page with translations.
                 } else {
                         $this->uls_translate_by_google();
                 }
+                
                 add_action('pre_get_posts', array($this, 'uls_filter_archive_by_language'));
-                add_action('wp_head',  array($this, 'head_reference_translation'));
+                add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+                add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+                add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'), 10, 2);
                 
         }
         
@@ -418,59 +418,6 @@ user.
         //filter posts by language loaded in the page
         if($modify_query){
         $this->uls_add_language_meta_query($query);
-        }
-        }
-
-        
-        function head_reference_translation() {
-
-        //get the id of the current page
-        $url =(isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"]=="on") ? "https://" : "http://";
-        $url .= $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
-        $post_id = url_to_postid($url);
-
-        // get all available languages
-        $languages = xs_framework::get_available_language();
-        $curren_code = xs_framework::get_user_language(); // get current language
-        // delete the current language site
-        $code_value = array_search($curren_code, $languages);
-        unset($languages[$code_value]);
-
-        // build the url to be tranlation
-        $url = '';
-        // get url from where it's using
-        if ( is_home() )
-        $url = get_home_url(); // get home url
-        else if ( is_archive() || is_search() || is_author() || is_category() || is_tag() || is_date() )
-        $url = xs_framework::get_browser_url(); // get browser url
-
-        // if exits the url so, translate this
-        if (!empty($url) ) {
-        // use all available languages and get the url translation
-        foreach ($languages as $language => $code) {
-        $translation_url = $this->uls_get_url_translated($url, $code);
-        echo '<link rel="alternate" hreflang="'.substr($code, 0, 2).'" href="'.$translation_url.'" />';
-        }
-        }
-
-        // build url to the home
-        if ( !empty($post_id) && empty($url) ) {
-
-        // change the filter
-        global $uls_permalink_convertion;
-        $uls_permalink_convertion = false;
-
-        // use all available languages and get the url translation
-        foreach ($languages as $language => $code) {
-        // get the post_id translation if the current page has translation
-        $translation_id = $this->uls_get_post_translation_id($post_id, $code);
-        if ( !empty($translation_id) ) {
-                $translation_url = $this->uls_get_url_translated(get_permalink($translation_id), $code);
-                echo '<link rel="alternate" hreflang="'.substr($code, 0, 2).'" href="'.$translation_url.'" />';
-        }
-        }
-        // leave the global car like it was before
-        $uls_permalink_convertion = true;
         }
         }
 }
