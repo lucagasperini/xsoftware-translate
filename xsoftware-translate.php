@@ -41,7 +41,7 @@ user to the correct page with translations.
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
                 add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
                 add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-                //add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'));
+                add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'), 10, 2);
                 
                 $this->options = get_option('xs_translate_options');
                 
