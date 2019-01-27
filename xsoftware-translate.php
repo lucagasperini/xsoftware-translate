@@ -55,7 +55,7 @@ user to the correct page with translations.
                         $this->uls_translate_by_google();
                 }
                 
-                add_action('pre_get_posts', array($this, 'uls_filter_archive_by_language'));
+                add_action('pre_get_posts', array($this, 'filter_archive'));
                 add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
                 add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
                 add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'), 10, 2);
@@ -310,64 +310,34 @@ user.
         *
         * @param $query object WordPress query object where language query will be added.
         */
-        function uls_add_language_meta_query(&$query){
-        //set permalink convertion to true, to get real URLs
-        global $uls_permalink_convertion;
-        $uls_permalink_convertion = true;
+        function meta_query(&$query)
+        {
+                //get language displayed
+                $language_displayed = xs_framework::get_user_language();
 
-        //get language displayed
-        $language_displayed = xs_framework::get_user_language();
+                $language_query = array(
+                                array(
+                                'key' => 'xs_translate_language',
+                                'value' => $language_displayed,
+                                'compare' => '='
+                                ),
+                        );
 
-        //get the default language of the website
-        $default_website_language = xs_framework::get_option('frontend_language');
+                //get current meta query
+                $meta_query = $query->get('meta_query');
 
-        //if the language displayed is the same to the default language, then it includes posts without language
-        $language_query = null;
-        if($language_displayed == $default_website_language){
-        //build query for languages
-        $language_query = array(
-        'relation' => 'OR',
-        array(
-                'key' => 'uls_language',
-                'value' => 'bug #23268',
-                'compare' => 'NOT EXISTS'
-        ),
-        array(
-                'key' => 'uls_language',
-                'value' => $language_displayed,
-                'compare' => '='
-        )
-        );
-        }
-        //filter posts by language displayed
-        else{
-        $language_query = array(
-        array(
-                'key' => 'uls_language',
-                'value' => $language_displayed,
-                'compare' => '='
-        ),
-        );
-        }
+                //add language query to the meta query
+                if(empty($meta_query))
+                        $meta_query = $language_query;
+                else
+                        $meta_query = array(
+                                'relation' => 'AND',
+                                $language_query,
+                                $meta_query
+                        );
 
-        //get current meta query
-        $meta_query = $query->get('meta_query');
-
-        //add language query to the meta query
-        if(empty($meta_query))
-        $meta_query = $language_query;
-        else
-        $meta_query = array(
-        'relation' => 'AND',
-        $language_query,
-        $meta_query
-        );
-
-        //set the new meta query
-        $query->set('meta_query', $meta_query);
-
-        //reset flag
-        $uls_permalink_convertion = false;
+                //set the new meta query
+                $query->set('meta_query', $meta_query);
         }
 
         /**
@@ -376,49 +346,15 @@ user.
         * @param $query object WordPress query object used to create the archive of posts.
         */
         
-        function uls_filter_archive_by_language($query){
-        //check if it in the admin dashboard
-        if(is_admin())
-        return;
+        function filter_archive($query)
+        {
+                //this flag indicates if we should filter posts by language
+                $modify_query = !$query->is_page() && !$query->is_single() && !$query->is_preview() && 'nav_menu_item' != $query->get('post_type');
 
-        // get values configuration uls_settings to applic filter translation to the post_types
-        // if the information in languages_filter_disable are true apply filter
-        $settings = $this->options;
-
-        // Check post type in query, if post type is empty , Wordpress uses 'post' by default
-        $postType = 'post';
-        if(property_exists($query, 'query') && array_key_exists('post_type', $query->query)) {
-        $postType = $query->query['post_type'];
-        }
-
-        if (is_array($settings)) {
-        if (array_key_exists('languages_filter_enable', $settings)) {
-        if (is_string($postType) || is_numeric($postType)) {
-                if (is_array($settings['languages_filter_enable'])) {
-                if (!array_key_exists($postType, $settings['languages_filter_enable'])) {
-                return;
+                //filter posts by language loaded in the page
+                if($modify_query){
+                        $this->meta_query($query);
                 }
-                }
-        }
-        }
-        }
-
-        //this flag indicates if we should filter posts by language
-        $modify_query = !$query->is_page() && !$query->is_single() && !$query->is_preview();
-
-        //if it is displaying the home page and the home page is the list of posts
-        //$modify_query = 'posts' == get_option( 'show_on_front' ) && is_front_page();
-
-        //if it is an archive
-        //$modify_query = $modify_query || $query->is_archive() || $query->is_post_type_archive();
-
-        //if this is not a query for a menu(menus are handled by the plugin too)
-        $modify_query = $modify_query && 'nav_menu_item' != $query->get('post_type');
-
-        //filter posts by language loaded in the page
-        if($modify_query){
-        $this->uls_add_language_meta_query($query);
-        }
         }
 }
 endif;
