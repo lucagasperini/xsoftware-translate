@@ -138,7 +138,10 @@ user to the correct page with translations.
         {
                 $menu_name = $args->menu;
                 $user_lang = xs_framework::get_user_language();
-                $menu = isset($this->options['menu'][$user_lang]) ? $this->options['menu'][$user_lang] : '';
+                if(isset($this->options['menu'][$user_lang]))
+                        $menu =  $this->options['menu'][$user_lang];
+                else
+                        $menu = $this->options['menu'][$this->options['native_language']];
                 
                 $items = $this->print_select_menu_language($items);
                 
@@ -211,7 +214,7 @@ user.
                 $url = xs_framework::get_browser_url();
                 $url = strtok($url, '?'); //remove query string if there are
 
-                $redirectUrl = $this->uls_get_url_translated($url, $language);
+                $redirectUrl = $this->get_url_translate($url, $language);
                 if($redirectUrl == false)
                         return NULL;
                 
@@ -226,11 +229,10 @@ user.
         * Return the id of the translation of a post.
         *
         * @param $post_id integer id of post to translate.
-        * @param $language string language of translation. If it is null or invalid, current language loaded in the page is used.
         *
         * @return mixed it returns id of translation post as an integer or false if translation doesn't exist.
         */
-        function get_post_translation_id($post_id, $language = null)
+        function get_post_id_translate($post_id)
         {
                 $user_language = xs_framework::get_user_language();
 
@@ -243,9 +245,18 @@ user.
                 
                 $values = get_post_custom( $post_id );
                 $lang = isset( $values['xs_translate_language'][0] ) ? $values['xs_translate_language'][0] : '';
-                $native = isset( $values['xs_translate_native_post'][0] ) ? intval($values['xs_translate_native_post'][0]) : '';
+                $native = isset( $values['xs_translate_native_post'][0] ) ? $values['xs_translate_native_post'][0] : '';
+                
+                if(!empty($native))
+                        $native_post = get_post($native);
+                else
+                        $native_post = get_post($post_id);
+                
+                if($user_language === $this->options['native_language']) {
+                        return $native_post->ID;
+                }
                         
-                if($post_language == $this->options['native_language'])
+                if($post_language !== $user_language)
                 {
                         $lang_query = array(
                                 array(
@@ -257,7 +268,7 @@ user.
                         $native_query = array( 
                                 array (
                                         'key' => 'xs_translate_native_post',
-                                        'value' => $post_id,
+                                        'value' => $native_post->ID,
                                         'compare'=> '='
                                 )
                         );
@@ -269,40 +280,23 @@ user.
                         );
                         
                         $the_posts = get_posts(  array(
-                                'post_type' => get_post_type($post_id),
+                                'post_type' => get_post_type($native_post->ID),
                                 'meta_query' => $meta_query,
                                 'posts_per_page' => -1,
                         ));
-                        var_dump($the_posts);
-                } else
-                {
-                        $lang_query = array(
-                                array(
-                                        'key' => 'xs_translate_language',
-                                        'value' => $user_language,
-                                        'compare' => '='
-                                )
-                        );
-                        
-                        $the_posts = get_post($native);
-                        var_dump($the_posts, $lang, $native);
+                        if(isset($the_posts) && count($the_posts) == 1)
+                                return $the_posts[0]->ID;
+                        else
+                                return FALSE;
                 }
                 
-                        
-                
-
-                //get the translation
-                $translation = get_post_meta($post_id, 'uls_translation_' . $language, true);
-                if("" == $translation)
-                        $translation = get_post_meta($post_id, 'uls_translation_' . strtolower($language), true);
-
-                return empty($translation) ? false : $translation;
+                return FALSE;
         }
 
         /**
         * Get the page of traslated url.
         */
-        function uls_get_url_translated($url, $language = NULL)
+        function get_url_translate($url)
         {
                 $offset = NULL;
                 if(empty($url))
@@ -311,8 +305,8 @@ user.
                 $page_id = url_to_postid($url);
                 if($page_id == 0)
                         return $url;
-                $translation_id = $this->get_post_translation_id($page_id, $language);
-                $offset = get_permalink($translation_id);
+                $id = $this->get_post_id_translate($page_id);
+                $offset = get_permalink($id);
                         
                 return $offset;
         }
