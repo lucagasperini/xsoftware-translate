@@ -199,7 +199,7 @@ back-end side.
                 if($options['use_google_translate'] == false)
                         return;
                         
-                wp_enqueue_script('uls_google_translate_script', "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+                wp_enqueue_script('xs_google_translate_script', "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
                 
         }
 
