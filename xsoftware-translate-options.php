@@ -101,6 +101,21 @@ class xs_translate_options
                         array($this,'show_settings'),
                         'uls-settings-page'
                 );
+                
+                //register settings
+                register_setting(
+                        'xs_translate_options',
+                        'xs_translate_options',
+                        array($this,'validate_advsettings')
+                );
+
+                //create section for registration
+                add_settings_section(
+                        'xs_advance_setting_section',
+                        '',
+                        array($this,'show_advsettings'),
+                        'uls-settings-page'
+                );
         
         }
         
@@ -167,24 +182,13 @@ class xs_translate_options
                         'value' => $this->options['user_frontend_configuration'],
                         'compare' => TRUE
                 );
-                
-                add_settings_field(
-                        'table_menu_language',
-                        '',
-                        array($this, 'create_table_menu_language'),
-                        'uls-settings-page',
-                        'xs_general_setting_section',
-                        $options
-                );
-
-                add_settings_field(
-                        'table_language_filter',
-                        '',
-                        array($this, 'create_table_language_filter'),
-                        'uls-settings-page',
-                        'xs_general_setting_section',
-                        $options
-                );
+               
+        }
+        
+        function show_advsettings()
+        {
+                $this->create_table_menu_language();
+                $this->create_table_language_filter();
         }
 
         /**
@@ -218,8 +222,9 @@ class xs_translate_options
         * Create the HTML of a table with languages lits.
         * @param $options array plugin options saved.
         */
-        function create_table_menu_language($option) 
+        function create_table_menu_language() 
         {
+                echo '<h2>Translated Menu Navbar<h2>';
                 // get the all languages available in the wp
                 $languages = xs_framework::get_available_language(array('language' => FALSE, 'english_name' => TRUE));
                 $menus = get_terms( 'nav_menu', array( 'hide_empty' => true ) ); // get menues
@@ -239,33 +244,34 @@ class xs_translate_options
                 xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
         }
 
-   /*
-    * create table language filter this is for enable and disable post_type
-     */
-  function create_table_language_filter($options) {
-        $options = $this->options; // get information from DB
-        // get the information that actually is in the DB
-        $languages_filter = isset($options['languages_filter_enable']) ? $options['languages_filter_enable'] : '';
+        /*
+        * create table language filter this is for enable and disable post_type
+        */
+        function create_table_language_filter() 
+        {
+                echo '<h2>Filter Post Type<h2>';
+                // get the information that actually is in the DB
+                $languages_filter = isset($this->options['languages_filter_enable']) ? $this->options['languages_filter_enable'] : '';
 
-        $args = array( '_builtin' => false);// values for do the query
-        $post_types = get_post_types($args); // get all custom post types
-        $post_types['post'] = 'post'; // add default post type
-        $post_types['page'] = 'page'; // add default post type
+                $args = array( '_builtin' => false);// values for do the query
+                $post_types = get_post_types($args); // get all custom post types
+                $post_types['post'] = 'post'; // add default post type
+                $post_types['page'] = 'page'; // add default post type
 
-        $headers = array('Enable / Disable', 'Post types');
-        $data_table = array();
-        foreach($post_types as $post_type => $name) {
-                $data_table[$post_type][0] = xs_framework::create_input_checkbox( array(
-                        'name' => 'uls_language_filter['.$post_type.']',
-                        'value' => $name,
-                        'compare' => isset($languages_filter[$post_type]),
-                        'return' => TRUE
-                        ));
-                $data_table[$post_type][1] = $name;
-                
+                $headers = array('Enable / Disable', 'Post types');
+                $data_table = array();
+                foreach($post_types as $post_type => $name) {
+                        $data_table[$post_type][0] = xs_framework::create_input_checkbox( array(
+                                'name' => 'uls_language_filter['.$post_type.']',
+                                'value' => $name,
+                                'compare' => isset($languages_filter[$post_type]),
+                                'return' => TRUE
+                                ));
+                        $data_table[$post_type][1] = $name;
+                        
+                }
+                xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
         }
-        xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
-  }
 
 
 }
