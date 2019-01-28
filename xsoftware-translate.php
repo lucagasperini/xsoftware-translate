@@ -43,10 +43,6 @@ user to the correct page with translations.
                 $this->options = get_option('xs_translate_options');
                 
                 if(is_admin()) return;
-                //load translation
-                $plugin_dir = dirname( plugin_basename( __FILE__ ) ) . '/languages/';
-                load_plugin_textdomain( 'user-language-switch', false, $plugin_dir );
-                
                 
                 if(isset($_COOKIE['xs_framework_user_language'])) {
                         //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
