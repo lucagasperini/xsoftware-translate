@@ -320,8 +320,11 @@ class xs_translate
                                         
                                 return;
                         case 'native': 
-                                $native = $this->get_post_meta_native($post_id);
+                                $native = intval($this->get_post_meta_native($post_id));
+                                if($native === 0)
+                                        return;
                                 $native_post = get_post($native);
+
                                 if(isset($native_post->post_title) && $native !== $post_id)
                                         echo '<span>'.$native_post->post_title.'</span>';
                                 return;
