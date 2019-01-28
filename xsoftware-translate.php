@@ -25,8 +25,8 @@ class xs_translate
 {
         private $options = NULL;
         /**
-        * This function intis the plugin. It check the language in the URL, the language in the browser and the language in the user preferences to redirect the 
-user to the correct page with translations.
+        * This function intis the plugin. It check the language in the URL, the language in the browser and the language in the user preferences to 
+        * redirect the user to the correct page with translations.
         *
         * 1. This function first check the language configured in the user browser and redirects the user to the correct language version of the website.
         */
@@ -36,8 +36,8 @@ user to the correct page with translations.
                 add_action('save_post', array($this,'metaboxes_save'));
                 add_filter('manage_posts_columns', array($this, 'add_columns'));
                 add_filter('manage_pages_columns', array($this, 'add_columns'));
-                add_action('manage_posts_custom_column',  array($this, 'show_columns'));
-                add_action('manage_pages_custom_column',  array($this, 'show_columns'));
+                add_action('manage_posts_custom_column',  array($this, 'show_columns'), 10, 2);
+                add_action('manage_pages_custom_column',  array($this, 'show_columns'), 10, 2);
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
                 
                 $this->options = get_option('xs_translate_options');
@@ -150,17 +150,16 @@ user to the correct page with translations.
         function print_select_menu_language($items)
         {
                 $offset = '';
-                $offset .= '<li>';
-                $offset .= '<select class="languagepicker" id="xs_translate_select_language" onchange="xs_translate_select_language()">';
-                $languages = xs_framework::get_available_language();
-                $current_lang = xs_framework::get_user_language();
-                foreach($languages as $code => $name)
-                        if($current_lang != $code)
-                                $offset .= '<option value="'.$code.'">'.$name.'</option>';
-                        else
-                                $offset .= '<option value="'.$code.'" selected>'.$name.'</option>';
+                $offset .= '<li>
+                <a href="">Languages</a><ul class="sub-menu">';
+                $languages = xs_framework::get_available_language(array('iso' => TRUE));
+                
+                foreach($languages as $code => $prop)
+                        $offset .= '<li><a onclick="xs_translate_select_language(\'' . $code . '\');" href="">
+                        <span class="flag-icon flag-icon-'.$prop['iso'].'"></span>    '.$prop['english_name'].
+                        '</a></li>';
                         
-                $offset .= '</select></li>';
+                $offset .= '</ul></li>';
                 return $items . $offset;
         }
 
@@ -207,7 +206,7 @@ user to the correct page with translations.
                 $user_language = xs_framework::get_user_language();
 
                 //get the translation of the post
-                $post_language = $this->get_post_language($post_id);
+                $post_language = $this->get_post_meta_language($post_id);
 
                 //if the language of the post is the same language of the translation
                 if($post_language == $user_language)
@@ -288,29 +287,46 @@ user to the correct page with translations.
         *
         * @return string the code of the language or an empty string if the post doesn't have a language.
         */
-        function get_post_language($id)
+        function get_post_meta_language($id)
         {
-                $postLanguage = get_post_meta($id, 'xs_translate_language', true);
+                $lang = get_post_meta($id, 'xs_translate_language', true);
 
-                return $postLanguage;
+                return $lang;
+        }
+
+        function get_post_meta_native($id)
+        {
+                $native = get_post_meta($id, 'xs_translate_native_post', true);
+
+                return $native;
         }
 
 
         function add_columns($columns) 
         {
                 $columns['language'] = 'Language';
+                $columns['native'] = 'Native';
                 return $columns;
         }
 
-        function show_columns($name) 
+        function show_columns($column, $post_id) 
         {
-                global $post;
-                $code = get_post_meta($post->ID, 'xs_translate_language', true);
-                $iso = xs_framework::get_available_language(array('english_name' => FALSE, 'iso' => TRUE));
-                if(isset($iso[$code]))
-                        echo '<span class="flag-icon flag-icon-'.$iso[$code].'"></span>';
+                switch ( $column ) {
+                        case 'language':
+                                $code = $this->get_post_meta_language($post_id);
+                                $iso = xs_framework::get_available_language(array('english_name' => FALSE, 'iso' => TRUE));
+                                if(isset($iso[$code]))
+                                        echo '<span class="flag-icon flag-icon-'.$iso[$code].'"></span>';
+                                        
+                                return;
+                        case 'native': 
+                                $native = $this->get_post_meta_native($post_id);
+                                $native_post = get_post($native);
+                                if(isset($native_post->post_title) && $native !== $post_id)
+                                        echo '<span>'.$native_post->post_title.'</span>';
+                                return;
+                }
         }
-
         /**
         * Add queries to filter posts by languages. If a post doesn't have language.
         *
