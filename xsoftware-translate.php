@@ -50,9 +50,9 @@ user to the correct page with translations.
                 
                 if(isset($_COOKIE['xs_framework_user_language'])) {
                         //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
-                        $this->uls_redirect_by_language($_COOKIE['xs_framework_user_language']);
+                        $this->redirect();
                 } else {
-                        $this->uls_translate_by_google();
+                        $this->translate_by_google();
                 }
                 
                 add_action('pre_get_posts', array($this, 'filter_archive'));
@@ -168,7 +168,7 @@ user to the correct page with translations.
                 return $items . $offset;
         }
 
-        function uls_translate_by_google()
+        function translate_by_google()
         {
                 if($this->options['use_google_translate'] == false)
                         return;
@@ -183,12 +183,12 @@ user to the correct page with translations.
         * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects 
         * the user.
         */
-        function uls_redirect_by_language($language)
+        function redirect()
         {
                 $url = xs_framework::get_browser_url();
                 $url = strtok($url, '?'); //remove query string if there are
 
-                $redirectUrl = $this->get_url_translate($url, $language);
+                $redirectUrl = $this->get_url_translate($url);
                 if($redirectUrl == false)
                         return NULL;
                 
