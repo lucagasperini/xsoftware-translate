@@ -9,15 +9,9 @@ if (!class_exists("xs_translate_options")) :
 class xs_translate_options
 {
         private $default_options = array(
-        'user_backend_configuration' => TRUE,
-        'user_frontend_configuration' => TRUE,
-        'activate_tab_language_switch' => TRUE,
-        'tab_color_picker_language_switch' => 'rgba(255, 255, 255, 0)',
-        'tab_position_language_switch' => 'RM',
-        'fixed_position_language_switch' => TRUE,
         'use_google_translate' => TRUE,
         'automatic_redicted_ssl' => TRUE,
-        'enable_translation_sidebars_language_switch' => TRUE,
+        'enable_translation_sidebars' => TRUE,
         'languages_filter_enable' => array('post' => 'post', 'page' => 'page'),
         'native_language' => 'en_GB'
         );
@@ -203,14 +197,9 @@ class xs_translate_options
                 else if ( isset($input['languages_filter_enable']) ) {
                         $options['languages_filter_enable'] = $input['uls_language_filter'];
                 } else {
-                        //get values of checkboxes
-                        $options['user_backend_configuration']     =   isset($input['user_backend_configuration']);
-                        $options['user_frontend_configuration']    =   isset($input['user_frontend_configuration']);
-                        $options['activate_tab_language_switch']   =   isset($input['activate_tab_language_switch']);
-                        $options['fixed_position_language_switch'] =   isset($input['fixed_position_language_switch']);
                         $options['use_google_translate']            =   isset($input['use_google_translate']);
                         $options['automatic_redicted_ssl']        = isset($input['automatic_redicted_ssl']);
-                        $options['enable_translation_sidebars_language_switch'] = isset($input['enable_translation_sidebars_language_switch']);
+                        $options['enable_translation_sidebars'] = isset($input['enable_translation_sidebars']);
                         $options['native_language'] = $input['native_language'];
                 }
                 return $options;
