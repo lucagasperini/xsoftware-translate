@@ -168,35 +168,9 @@ user to the correct page with translations.
                 return $items . $offset;
         }
 
-
-        /**
-        * Return the permalink of the translation link of a post.
-        *
-        * @param $post_id integer id of post.
-        * @param $language string language of translation. If it is null or invalid, current language loaded in the page is used.
-        *
-        * @return string the permalink of the translation link of a post.
-        */
-        function uls_get_permalink($post_id, $language = null){
-        $translation_id = $this->uls_get_post_translation_id($post_id, $language);
-        return empty($translation_id) ? get_permalink($post_id) : get_permalink($translation_id);
-        }
-
-
-        /**
-        * This function gets the language from the URL, if there is no language in the URL, then it gets language from settings saved by the user in the 
-back-end side. 
-        If there isn't a language in the URL or user hasn't set it, then default language of the website is used.
-        *
-        * @param $only_lang boolean if it is true, then it returns the 2 letters of the language. It is the language code without location.
-        *
-        * @return string language code. If there isn't a language in the URL or user hasn't set it, then default language is returned.
-        */
-
         function uls_translate_by_google()
         {
-                $options = $this->options;
-                if($options['use_google_translate'] == false)
+                if($this->options['use_google_translate'] == false)
                         return;
                         
                 wp_enqueue_script('xs_google_translate_script', "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
@@ -206,8 +180,8 @@ back-end side.
         /**
         * This function check if the redirection based on the browser language is enabled. If it is add cookies to manage language
         *
-        * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects the 
-user.
+        * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects 
+        * the user.
         */
         function uls_redirect_by_language($language)
         {
