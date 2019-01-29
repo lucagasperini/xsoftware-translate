@@ -149,10 +149,13 @@ class xs_translate
         
         function print_select_menu_language($items)
         {
+                $user_lang = xs_framework::get_user_language();
+                $languages = xs_framework::get_available_language(array('iso' => TRUE));
                 $offset = '';
                 $offset .= '<li>
-                <a href="">Languages</a><ul class="sub-menu">';
-                $languages = xs_framework::get_available_language(array('iso' => TRUE));
+                <a href=""><span class="flag-icon flag-icon-'.$languages[$user_lang]['iso'].'"></span></a><ul class="sub-menu">';
+                
+                
                 
                 foreach($languages as $code => $prop)
                         $offset .= '<li><a onclick="xs_translate_select_language(\'' . $code . '\');" href="">
