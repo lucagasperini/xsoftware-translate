@@ -9,28 +9,16 @@ if (!class_exists("xs_translate_options")) :
 class xs_translate_options
 {
         private $default_options = array(
-        'use_google_translate' => TRUE,
-        'automatic_redicted_ssl' => TRUE,
-        'enable_translation_sidebars' => TRUE,
-        'languages_filter_enable' => array('post' => 'post', 'page' => 'page'),
-        'native_language' => 'en_GB'
+                'use_google_translate' => TRUE,
+                'automatic_redicted_ssl' => TRUE,
+                'enable_translation_sidebars' => TRUE,
+                'languages_filter_enable' => array('post' => 'post', 'page' => 'page'),
+                'native_language' => 'en_GB',
+                'frontend_language' => 'en_GB',
+                'backend_language' => 'en_GB',
         );
         
         private $options = NULL;
-        
-        private $tab_position = array('TL' => 'Top-Left',
-                                         'TC' => 'Top-Center',
-                                         'TR' => 'Top-Right',
-                                         'BL' => 'Bottom-Left',
-                                         'BC' => 'Bottom-Center',
-                                         'BR' => 'Bottom-Right',
-                                         'LT' => 'Left-Top',
-                                         'LM' => 'Left-Middle',
-                                         'LB' => 'Left-Bottom',
-                                         'RT' => 'Right-Top',
-                                         'RM' => 'Right-Middle',
-                                         'RB' => 'Right-Bottom'
-                                        );
 
         /**
         * Save default settings for the plugin.
@@ -129,6 +117,36 @@ class xs_translate_options
                         'xs_general_setting_section',
                 $options);
                 
+                                
+                $options = array(
+                        'name' => 'xs_translate_options[frontend_language]',
+                        'data' => xs_framework::get_available_language(),
+                        'selected' => $this->options['frontend_language']
+                );
+        
+                add_settings_field(
+                        $options['name'],
+                        'Default language',
+                        'xs_framework::create_select',
+                        'uls-settings-page',
+                        'xs_general_setting_section',
+                        $options
+                );
+
+                $options = array(
+                        'name' => 'xs_translate_options[backend_language]',
+                        'data' => xs_framework::get_available_language(),
+                        'selected' => $this->options['backend_language']
+                );
+                add_settings_field(
+                        $options['name'],
+                        'Default language for admin side',
+                        'xs_framework::create_select',
+                        'uls-settings-page',
+                        'xs_general_setting_section',
+                        $options
+                );
+                
                 $options = array( 
                         'name' => 'xs_translate_options[automatic_redicted_ssl]', 
                         'value' => $this->options['automatic_redicted_ssl'],
@@ -158,8 +176,8 @@ class xs_translate_options
                 );
 
                 $options = array( 
-                        'name' => 'xs_translate_options[enable_translation_sidebars_language_switch]', 
-                        'value' => $this->options['enable_translation_sidebars_language_switch'],
+                        'name' => 'xs_translate_options[enable_translation_sidebars]', 
+                        'value' => $this->options['enable_translation_sidebars'],
                         'compare' => TRUE
                 );
                 add_settings_field(
@@ -169,12 +187,6 @@ class xs_translate_options
                         'uls-settings-page',
                         'xs_general_setting_section',
                         $options
-                );
-
-                $options = array( 
-                        'name' => 'xs_translate_options[user_frontend_configuration]', 
-                        'value' => $this->options['user_frontend_configuration'],
-                        'compare' => TRUE
                 );
                
         }
@@ -191,17 +203,16 @@ class xs_translate_options
         function validate_settings($input)
         {
                 $options = $this->options;
-                if( isset($input['menu']) ) {
-                        $options['menu'] = $input['menu'];
-                }
-                else if ( isset($input['languages_filter_enable']) ) {
-                        $options['languages_filter_enable'] = $input['uls_language_filter'];
-                } else {
-                        $options['use_google_translate']            =   isset($input['use_google_translate']);
-                        $options['automatic_redicted_ssl']        = isset($input['automatic_redicted_ssl']);
-                        $options['enable_translation_sidebars'] = isset($input['enable_translation_sidebars']);
-                        $options['native_language'] = $input['native_language'];
-                }
+                
+                $options['menu'] = $input['menu'];
+                $options['languages_filter_enable'] = $input['uls_language_filter'];
+                $options['use_google_translate']            =   isset($input['use_google_translate']);
+                $options['automatic_redicted_ssl']        = isset($input['automatic_redicted_ssl']);
+                $options['enable_translation_sidebars'] = isset($input['enable_translation_sidebars']);
+                $options['native_language'] = $input['native_language'];
+                $options['frontend_language'] = $input['frontend_language'];
+                $options['backend_language'] = $input['backend_language'];
+                
                 return $options;
         }
 

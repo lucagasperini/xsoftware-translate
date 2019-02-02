@@ -32,6 +32,8 @@ class xs_translate
         */
         function __construct()
         {
+                $this->options = get_option('xs_translate_options');
+                
                 add_action('add_meta_boxes', array($this, 'metaboxes'));
                 add_action('save_post', array($this,'metaboxes_save'));
                 add_filter('manage_posts_columns', array($this, 'add_columns'));
@@ -39,8 +41,7 @@ class xs_translate
                 add_action('manage_posts_custom_column',  array($this, 'show_columns'), 10, 2);
                 add_action('manage_pages_custom_column',  array($this, 'show_columns'), 10, 2);
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
-                
-                $this->options = get_option('xs_translate_options');
+                add_filter('locale', array($this, 'set_locale'));
                 
                 if(is_admin()) return;
                 
@@ -56,6 +57,14 @@ class xs_translate
                 add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
                 add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'), 10, 2);
                 
+        }
+        
+        function set_locale() 
+        {
+                if ( is_admin() ) 
+                        return $this->options['backend_language'];
+                else
+                        return $this->options['frontend_language'];
         }
         
         function metaboxes()
