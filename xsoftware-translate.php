@@ -385,8 +385,10 @@ class xs_translate
         
         function filter_archive($query)
         {
+                $post_type = $query->get('post_type');
+                $is_type = empty($post_type) || $post_type === 'post';
                 //this flag indicates if we should filter posts by language
-                $modify_query = !$query->is_page() && !$query->is_single() && !$query->is_preview() && 'nav_menu_item' != $query->get('post_type');
+                $modify_query = !$query->is_page() && !$query->is_single() && !$query->is_preview() && $is_type;
 
                 //filter posts by language loaded in the page
                 if($modify_query){
