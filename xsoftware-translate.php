@@ -8,7 +8,7 @@ Author URI: http://www.xsoftware.it
 License: GPL3
 */
 
-if(!defined("ABSPATH")) exit;
+if(!defined("ABSPATH")) die;
 
 if (!class_exists("xs_translate")) :
 

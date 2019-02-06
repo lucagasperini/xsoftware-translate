@@ -1,6 +1,6 @@
 <?php
 
-if(!defined("ABSPATH")) exit;
+if(!defined("ABSPATH")) die;
 
 if (!class_exists("xs_translate_options")) :
 /**
