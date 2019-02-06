@@ -69,7 +69,14 @@ class xs_translate
         
         function metaboxes()
         {
-                add_meta_box( 'xs_translate_metaboxes', 'XSoftware Translate', array($this,'metaboxes_print'), array('post', 'page'),'advanced','high');
+                add_meta_box(
+                        'xs_translate_metaboxes', 
+                        'XSoftware Translate', 
+                        array($this,'metaboxes_print'),
+                        $this->options['post_type'],
+                        'advanced',
+                        'high'
+                );
         }
         
         function metaboxes_print()

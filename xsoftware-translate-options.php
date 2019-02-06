@@ -12,13 +12,16 @@ class xs_translate_options
                 'use_google_translate' => TRUE,
                 'automatic_redicted_ssl' => TRUE,
                 'enable_translation_sidebars' => TRUE,
-                'languages_filter_enable' => array('post' => 'post', 'page' => 'page'),
+                'post_type' => array('post', 'page'),
                 'native_language' => 'en_GB',
                 'frontend_language' => 'en_GB',
                 'backend_language' => 'en_GB',
+                'menu' => array()
         );
         
         private $options = NULL;
+        
+        private $languages = NULL;
 
         /**
         * Save default settings for the plugin.
@@ -28,7 +31,7 @@ class xs_translate_options
                 add_action("admin_menu", array($this, "register_menu"));
                 add_action("admin_init", array($this, "init_settings"));
                 $this->options = get_option('xs_translate_options', $this->default_options);
-                $this->options['available_languages'] = xs_framework::get_available_language();
+                $this->languages = xs_framework::get_available_language();
         }
         
         /**
@@ -41,7 +44,7 @@ class xs_translate_options
                         'Translate', 
                         'Translate', 
                         'manage_options', 
-                        'xsoftware-translate', 
+                        'xsoftware_translate', 
                         array($this,'create_settings_page'
                 ));
         }
@@ -73,40 +76,52 @@ class xs_translate_options
                 register_setting(
                         'xs_translate_options',
                         'xs_translate_options',
-                        array($this,'validate_settings')
+                        array($this,'input')
                 );
 
                 //create section for registration
                 add_settings_section(
                         'xs_general_setting_section',
                         'General Settings',
-                        array($this,'show_settings'),
-                        'uls-settings-page'
-                );
-                
-                //register settings
-                register_setting(
-                        'xs_translate_options',
-                        'xs_translate_options',
-                        array($this,'validate_advsettings')
-                );
-
-                //create section for registration
-                add_settings_section(
-                        'xs_advance_setting_section',
-                        '',
-                        array($this,'show_advsettings'),
+                        array($this,'show'),
                         'uls-settings-page'
                 );
         
         }
         
-        function show_settings()
+        function show()
+        {
+                $tab = xs_framework::create_tabs( array(
+                        'href' => '?page=xsoftware_translate',
+                        'tabs' => array(
+                                'home' => 'Generals',
+                                'menu' => 'Menus',
+                                'post' => 'Post Types'
+                        ),
+                        'home' => 'home',
+                        'name' => 'main_tab'
+                ));
+                
+                switch($tab) {
+                        case 'home':
+                                $this->show_general();
+                                return;
+                        case 'menu':
+                                $this->show_menu();
+                                return;
+                        case 'post':
+                                $this->show_post_type();
+                                return;
+                }
+               
+        }
+        
+        function show_general()
         {
                 $options = array( 
                         'name' => 'xs_translate_options[native_language]', 
                         'selected' => $this->options['native_language'],
-                        'data' => xs_framework::get_available_language()
+                        'data' => $this->languages
                 );
                 
                 add_settings_field(
@@ -120,7 +135,7 @@ class xs_translate_options
                                 
                 $options = array(
                         'name' => 'xs_translate_options[frontend_language]',
-                        'data' => xs_framework::get_available_language(),
+                        'data' => $this->languages,
                         'selected' => $this->options['frontend_language']
                 );
         
@@ -135,7 +150,7 @@ class xs_translate_options
 
                 $options = array(
                         'name' => 'xs_translate_options[backend_language]',
-                        'data' => xs_framework::get_available_language(),
+                        'data' => $this->languages,
                         'selected' => $this->options['backend_language']
                 );
                 add_settings_field(
@@ -188,32 +203,23 @@ class xs_translate_options
                         'xs_general_setting_section',
                         $options
                 );
-               
-        }
-        
-        function show_advsettings()
-        {
-                $this->create_table_menu_language();
-                $this->create_table_language_filter();
         }
 
         /**
         * Validate setting input fields.
         */
-        function validate_settings($input)
+        function input($input)
         {
-                $options = $this->options;
+                $current = $this->options;
                 
-                $options['menu'] = $input['menu'];
-                $options['languages_filter_enable'] = $input['uls_language_filter'];
-                $options['use_google_translate']            =   isset($input['use_google_translate']);
-                $options['automatic_redicted_ssl']        = isset($input['automatic_redicted_ssl']);
-                $options['enable_translation_sidebars'] = isset($input['enable_translation_sidebars']);
-                $options['native_language'] = $input['native_language'];
-                $options['frontend_language'] = $input['frontend_language'];
-                $options['backend_language'] = $input['backend_language'];
+                foreach($input as $key => $value) {
+                        if($key == 'post_type')
+                                $current[$key] = array_keys($value);
+                        else
+                                $current[$key] = $value;
+                }
                 
-                return $options;
+                return $current;
         }
 
 
@@ -222,9 +228,9 @@ class xs_translate_options
         * Create the HTML of a table with languages lits.
         * @param $options array plugin options saved.
         */
-        function create_table_menu_language() 
+        function show_menu() 
         {
-                echo '<h2>Translated Menu Navbar<h2>';
+                echo '<h2>Translated Menu Navbar</h2>';
                 // get the all languages available in the wp
                 $languages = xs_framework::get_available_language(array('language' => FALSE, 'english_name' => TRUE));
                 $menus = get_terms( 'nav_menu', array( 'hide_empty' => true ) ); // get menues
@@ -234,10 +240,15 @@ class xs_translate_options
         
                 foreach ($languages as $code => $name ) {
                         $headers[]  = $name;
+                        if(isset($this->options['menu'][$code]))
+                                $selected = $this->options['menu'][$code];
+                        else
+                                $selected = reset($data_menu);
+                                
                         $data_table[0][] = xs_framework::create_select( array(
                                 'name' => 'xs_translate_options[menu]['.$code.']', 
                                 'data' => $data_menu, 
-                                'selected' => $this->options['menu'][$code],
+                                'selected' => $selected,
                                 'return' => true
                         ));
                 }
@@ -247,27 +258,25 @@ class xs_translate_options
         /*
         * create table language filter this is for enable and disable post_type
         */
-        function create_table_language_filter() 
+        function show_post_type() 
         {
-                echo '<h2>Filter Post Type<h2>';
+                echo '<h2>Filter Post Type</h2>';
                 // get the information that actually is in the DB
-                $languages_filter = isset($this->options['languages_filter_enable']) ? $this->options['languages_filter_enable'] : '';
-
-                $args = array( '_builtin' => false);// values for do the query
-                $post_types = get_post_types($args); // get all custom post types
+                $options = isset($this->options['post_type']) ? $this->options['post_type'] : '';
+                
+                $post_types = get_post_types(['_builtin' => false]); // get all custom post types
                 $post_types['post'] = 'post'; // add default post type
                 $post_types['page'] = 'page'; // add default post type
 
                 $headers = array('Enable / Disable', 'Post types');
                 $data_table = array();
-                foreach($post_types as $post_type => $name) {
+                foreach($post_types as $post_type) {
                         $data_table[$post_type][0] = xs_framework::create_input_checkbox( array(
-                                'name' => 'uls_language_filter['.$post_type.']',
-                                'value' => $name,
-                                'compare' => isset($languages_filter[$post_type]),
+                                'name' => 'xs_translate_options[post_type]['.$post_type.']',
+                                'compare' => in_array($post_type, $options),
                                 'return' => TRUE
                                 ));
-                        $data_table[$post_type][1] = $name;
+                        $data_table[$post_type][1] = $post_type;
                         
                 }
                 xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
