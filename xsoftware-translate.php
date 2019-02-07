@@ -45,18 +45,27 @@ class xs_translate
                 
                 if(is_admin()) return;
                 
-                if(isset($_COOKIE['xs_framework_user_language'])) {
-                        //redirects the user based on the browser language. It detectes the browser language and redirect the user to the site in that language.
-                        $this->redirect();
-                } else {
-                        $this->translate_by_google();
-                }
+                $this->init_translation();
                 
                 add_action('pre_get_posts', array($this, 'filter_archive'));
                 add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
                 add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
                 add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'), 10, 2);
                 
+        }
+        
+        function init_translation()
+        {
+                $user_lang = xs_framework::get_user_language();
+                $langs = xs_framework::get_available_language();
+                
+                if(isset($langs[$user_lang])) {
+                        //redirects the user based on the browser language. 
+                        //It detectes the browser language and redirect the user to the site in that language.
+                        $this->redirect();
+                } else {
+                        $this->translate_by_google();
+                }
         }
         
         function set_locale() 
@@ -90,7 +99,7 @@ class xs_translate
                         'post_type' => get_post_type($post->ID),
                         'meta_query' => array( array (
                                         'key' => 'xs_translate_language',
-                                        'value' => $this->options['native_language'],
+                                        'value' => xs_framework::get_option('default_language'),
                                         'compare'=> '='
                                         )
                         ),
@@ -113,7 +122,7 @@ class xs_translate
                         'default' => 'Select a Language'
                 ));
                 
-                if($this->options['native_language'] !== $lang) {
+                if(xs_framework::get_option('default_language') !== $lang) {
                         $data[1][0] = 'Native Post:';
                         $data[1][1] = xs_framework::create_select( array(
                                 'name' => 'xs_translate_native_post', 
@@ -153,7 +162,7 @@ class xs_translate
                 if(isset($this->options['menu'][$user_lang]))
                         $menu =  $this->options['menu'][$user_lang];
                 else
-                        $menu = $this->options['menu'][$this->options['native_language']];
+                        $menu = $this->options['menu'][xs_framework::get_option('default_language')];
                 
                 $items = $this->print_select_menu_language($items);
                 
@@ -170,8 +179,6 @@ class xs_translate
                 $offset = '';
                 $offset .= '<li>
                 <a href=""><span class="flag-icon flag-icon-'.$languages[$user_lang]['iso'].'"></span></a><ul class="sub-menu">';
-                
-                
                 
                 foreach($languages as $code => $prop)
                         $offset .= '<li><a onclick="xs_translate_select_language(\'' . $code . '\');" href="">
@@ -240,7 +247,7 @@ class xs_translate
                 else
                         $native_post = get_post($post_id);
                 
-                if($user_language === $this->options['native_language']) {
+                if($user_language === xs_framework::get_option('default_language')) {
                         return $native_post->ID;
                 }
                         

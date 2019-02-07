@@ -117,22 +117,7 @@ class xs_translate_options
         }
         
         function show_general()
-        {
-                $options = array( 
-                        'name' => 'xs_translate_options[native_language]', 
-                        'selected' => $this->options['native_language'],
-                        'data' => $this->languages
-                );
-                
-                add_settings_field(
-                        $options['name'],
-                        __('Select a native language','user-language-switch'),
-                        'xs_framework::create_select',
-                        'uls-settings-page',
-                        'xs_general_setting_section',
-                $options);
-                
-                                
+        {     
                 $options = array(
                         'name' => 'xs_translate_options[frontend_language]',
                         'data' => $this->languages,
