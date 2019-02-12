@@ -147,7 +147,6 @@ class xs_translate
         function enqueue_styles()
         {
                 wp_enqueue_style('xs_translate_style_flag', plugins_url('flag-icon-css/css/flag-icon.min.css', __FILE__));
-                wp_enqueue_style('xs_translate_style', plugins_url('css/style.css', __FILE__));
         }
         
         function enqueue_scripts()
