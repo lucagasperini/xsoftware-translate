@@ -58,7 +58,7 @@ class xs_translate_options
                 echo '<h2>User Language Switch</h2>';
                 echo '<form method="post" action="options.php" enctype="multipart/form-data">';
                 settings_fields( 'xs_translate_options' );
-                do_settings_sections( 'uls-settings-page' );
+                do_settings_sections( 'xs_translate_section' );
                 submit_button( '' );
                 echo '</form>';
                 echo '</div>';
@@ -84,7 +84,7 @@ class xs_translate_options
                         'xs_general_setting_section',
                         'General Settings',
                         array($this,'show'),
-                        'uls-settings-page'
+                        'xs_translate_section'
                 );
         
         }
@@ -128,7 +128,7 @@ class xs_translate_options
                         $options['name'],
                         'Default language',
                         'xs_framework::create_select',
-                        'uls-settings-page',
+                        'xs_translate_section',
                         'xs_general_setting_section',
                         $options
                 );
@@ -142,7 +142,7 @@ class xs_translate_options
                         $options['name'],
                         'Default language for admin side',
                         'xs_framework::create_select',
-                        'uls-settings-page',
+                        'xs_translate_section',
                         'xs_general_setting_section',
                         $options
                 );
@@ -156,7 +156,7 @@ class xs_translate_options
                         $options['name'],
                         __('Enable automatic redicted to ssl connection','user-language-switch'),
                         'xs_framework::create_input_checkbox',
-                        'uls-settings-page',
+                        'xs_translate_section',
                         'xs_general_setting_section',
                         $options
                 );
@@ -170,7 +170,7 @@ class xs_translate_options
                         $options['name'],
                         __('You want use google translate','user-language-switch'),
                         'xs_framework::create_input_checkbox',
-                        'uls-settings-page',
+                        'xs_translate_section',
                         'xs_general_setting_section',
                         $options
                 );
@@ -184,7 +184,7 @@ class xs_translate_options
                         $options['name'],
                         __('Enable translations for sidebars','user-language-switch'),
                         'xs_framework::create_input_checkbox',
-                        'uls-settings-page',
+                        'xs_translate_section',
                         'xs_general_setting_section',
                         $options
                 );
