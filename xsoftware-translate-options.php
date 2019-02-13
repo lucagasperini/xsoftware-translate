@@ -117,7 +117,7 @@ class xs_translate_options
         }
         
         function show_general()
-        {     
+        {   
                 $options = array(
                         'name' => 'xs_translate_options[frontend_language]',
                         'data' => $this->languages,
@@ -149,8 +149,8 @@ class xs_translate_options
                 
                 $options = array( 
                         'name' => 'xs_translate_options[automatic_redicted_ssl]', 
-                        'value' => $this->options['automatic_redicted_ssl'],
-                        'compare' => TRUE
+                        'compare' => $this->options['automatic_redicted_ssl'],
+                        'echo' => TRUE
                 );
                 add_settings_field(
                         $options['name'],
@@ -163,8 +163,8 @@ class xs_translate_options
         
                 $options = array( 
                         'name' => 'xs_translate_options[use_google_translate]', 
-                        'value' => $this->options['use_google_translate'],
-                        'compare' => TRUE
+                        'compare' => $this->options['use_google_translate'],
+                        'echo' => TRUE
                 );
                 add_settings_field(
                         $options['name'],
@@ -176,9 +176,9 @@ class xs_translate_options
                 );
 
                 $options = array( 
-                        'name' => 'xs_translate_options[enable_translation_sidebars]', 
-                        'value' => $this->options['enable_translation_sidebars'],
-                        'compare' => TRUE
+                        'name' => 'xs_translate_options[enable_translation_sidebars]',
+                        'compare' => $this->options['enable_translation_sidebars'],
+                        'echo' => TRUE
                 );
                 add_settings_field(
                         $options['name'],
@@ -196,6 +196,13 @@ class xs_translate_options
         function input($input)
         {
                 $current = $this->options;
+                
+                if(isset($input['frontend_language'])) //HOTFIX CHECKBOX!
+                {
+                        $current['automatic_redicted_ssl'] = isset($input['automatic_redicted_ssl']);
+                        $current['use_google_translate'] = isset($input['use_google_translate']);
+                        $current['enable_translation_sidebars'] = isset($input['enable_translation_sidebars']);
+                }
                 
                 foreach($input as $key => $value) {
                         if($key == 'post_type')
@@ -258,9 +265,8 @@ class xs_translate_options
                 foreach($post_types as $post_type) {
                         $data_table[$post_type][0] = xs_framework::create_input_checkbox( array(
                                 'name' => 'xs_translate_options[post_type]['.$post_type.']',
-                                'compare' => in_array($post_type, $options),
-                                'return' => TRUE
-                                ));
+                                'compare' => in_array($post_type, $options)
+                        ));
                         $data_table[$post_type][1] = $post_type;
                         
                 }
