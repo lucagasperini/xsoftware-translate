@@ -117,8 +117,7 @@ class xs_translate
                 $data[0][1] = xs_framework::create_select( array(
                         'name' => 'xs_translate_language', 
                         'selected' => $lang, 
-                        'data' => $languages, 
-                        'return' => true,
+                        'data' => $languages,
                         'default' => 'Select a Language'
                 ));
                 
@@ -127,8 +126,7 @@ class xs_translate
                         $data[1][1] = xs_framework::create_select( array(
                                 'name' => 'xs_translate_native_post', 
                                 'selected' => $native,
-                                'data' => $post_list, 
-                                'return' => true,
+                                'data' => $post_list,
                                 'default' => 'Select a Post'
                         ));
                 }

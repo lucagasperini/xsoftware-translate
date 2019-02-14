@@ -121,7 +121,8 @@ class xs_translate_options
                 $options = array(
                         'name' => 'xs_translate_options[frontend_language]',
                         'data' => $this->languages,
-                        'selected' => $this->options['frontend_language']
+                        'selected' => $this->options['frontend_language'],
+                        'echo' => TRUE
                 );
         
                 add_settings_field(
@@ -136,7 +137,8 @@ class xs_translate_options
                 $options = array(
                         'name' => 'xs_translate_options[backend_language]',
                         'data' => $this->languages,
-                        'selected' => $this->options['backend_language']
+                        'selected' => $this->options['backend_language'],
+                        'echo' => TRUE
                 );
                 add_settings_field(
                         $options['name'],
@@ -240,8 +242,7 @@ class xs_translate_options
                         $data_table[0][] = xs_framework::create_select( array(
                                 'name' => 'xs_translate_options[menu]['.$code.']', 
                                 'data' => $data_menu, 
-                                'selected' => $selected,
-                                'return' => true
+                                'selected' => $selected
                         ));
                 }
                 xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
