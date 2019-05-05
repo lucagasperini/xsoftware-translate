@@ -409,3 +409,4 @@ class xs_translate
         }
 }
 endif;
+?>
