@@ -25,7 +25,7 @@ class xs_translate
 {
         private $options = NULL;
         /**
-        * This function intis the plugin. It check the language in the URL, the language in the browser and the language in the user preferences to 
+        * This function intis the plugin. It check the language in the URL, the language in the browser and the language in the user preferences to
         * redirect the user to the correct page with translations.
         *
         * 1. This function first check the language configured in the user browser and redirects the user to the correct language version of the website.
@@ -33,7 +33,7 @@ class xs_translate
         function __construct()
         {
                 $this->options = get_option('xs_translate_options');
-                
+
                 add_action('add_meta_boxes', array($this, 'metaboxes'));
                 add_action('save_post', array($this,'metaboxes_save'));
                 add_filter('manage_posts_columns', array($this, 'add_columns'));
@@ -42,52 +42,63 @@ class xs_translate
                 add_action('manage_pages_custom_column',  array($this, 'show_columns'), 10, 2);
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
                 add_filter('locale', array($this, 'set_locale'));
-                
+
                 if(is_admin()) return;
-                
+
                 $this->init_translation();
-                
-                add_action('pre_get_posts', array($this, 'filter_archive'));
-                add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
-                add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-                add_filter('wp_nav_menu_items', array($this, 'select_correct_menu_language'), 10, 2);
-                
+
+                add_action('pre_get_posts', [$this, 'filter_archive']);
+                add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
+                add_action('wp_enqueue_scripts', [$this,'enqueue_scripts']);
+                add_filter('wp_nav_menu_items', [
+                                $this,
+                                'select_correct_menu_language'
+                        ],
+                        10,
+                        2
+                );
+
+                xs_framework::register_plugin(
+                        'xs_translate',
+                        'xs_translate_options'
+                );
+
         }
-        
+
         function init_translation()
         {
                 $user_lang = xs_framework::get_user_language();
                 $langs = xs_framework::get_available_language();
-                
+
                 if(isset($langs[$user_lang])) {
-                        //redirects the user based on the browser language. 
+                        //redirects the user based on the browser language.
                         //It detectes the browser language and redirect the user to the site in that language.
                         $this->redirect();
                 } else {
                         $this->translate_by_google();
                 }
         }
-        
-        function set_locale() 
+
+        function set_locale()
         {
-                if ( is_admin() ) 
+                if ( is_admin() )
                         return $this->options['backend_language'];
                 else
                         return $this->options['frontend_language'];
         }
-        
+
         function metaboxes()
         {
                 add_meta_box(
-                        'xs_translate_metaboxes', 
-                        'XSoftware Translate', 
+                        'xs_translate_metaboxes',
+                        'XSoftware Translate',
                         array($this,'metaboxes_print'),
                         $this->options['post_type'],
                         'advanced',
                         'high'
                 );
         }
-        
+
         function metaboxes_print()
         {
                 global $post;
@@ -105,35 +116,35 @@ class xs_translate
                         ),
                         'posts_per_page' => -1,
                 ));
-               
+
                 $post_list = array();
                 foreach ($the_posts as $post) {
                         $post_list[$post->ID] = $post->post_title;
                 }
 
                 $languages = xs_framework::get_available_language();
-                
+
                 $data[0][0] = 'Post Language:';
                 $data[0][1] = xs_framework::create_select( array(
-                        'name' => 'xs_translate_language', 
-                        'selected' => $lang, 
+                        'name' => 'xs_translate_language',
+                        'selected' => $lang,
                         'data' => $languages,
                         'default' => 'Select a Language'
                 ));
-                
+
                 if(xs_framework::get_option('default_language') !== $lang) {
                         $data[1][0] = 'Native Post:';
                         $data[1][1] = xs_framework::create_select( array(
-                                'name' => 'xs_translate_native_post', 
+                                'name' => 'xs_translate_native_post',
                                 'selected' => $native,
                                 'data' => $post_list,
                                 'default' => 'Select a Post'
                         ));
                 }
-                
+
                 xs_framework::create_table(array('data' => $data)); //FIXME: 100% width
         }
-        
+
         function metaboxes_save($post_id)
         {
                 if( isset( $_POST['xs_translate_language'] ) )
@@ -141,18 +152,18 @@ class xs_translate
                 if( isset( $_POST['xs_translate_native_post'] ) )
                         update_post_meta( $post_id, 'xs_translate_native_post', $_POST['xs_translate_native_post'] );
         }
-        
+
         function enqueue_styles()
         {
                 wp_enqueue_style('xs_translate_style_flag', plugins_url('flag-icon-css/css/flag-icon.min.css', __FILE__));
         }
-        
+
         function enqueue_scripts()
         {
                 wp_enqueue_script('xs_translate_scripts', plugins_url('js/functions.js', __FILE__));
         }
-        
-        function select_correct_menu_language($items, $args) 
+
+        function select_correct_menu_language($items, $args)
         {
                 $menu_name = $args->menu;
                 $user_lang = xs_framework::get_user_language();
@@ -160,28 +171,46 @@ class xs_translate
                         $menu =  $this->options['menu'][$user_lang];
                 else
                         $menu = $this->options['menu'][xs_framework::get_option('default_language')];
-                
+
                 $items = $this->print_select_menu_language($items);
-                
+
                 if($menu_name == $menu)
                         return $items;
                 else
-                        return wp_nav_menu( array( 'menu' => $menu, 'items_wrap' => '%3$s' , 'container' => false, 'echo' => false) );
+                        return wp_nav_menu( [
+                                'menu' => $menu,
+                                'items_wrap' => '%3$s' ,
+                                'container' => false,
+                                'echo' => false
+                        ] );
         }
-        
+
         function print_select_menu_language($items)
         {
                 $user_lang = xs_framework::get_user_language();
-                $languages = xs_framework::get_available_language(array('iso' => TRUE));
-                $offset = '';
-                $offset .= '<li>
-                <a href=""><span class="flag-icon flag-icon-'.$languages[$user_lang]['iso'].'"></span></a><ul class="sub-menu">';
-                
-                foreach($languages as $code => $prop)
-                        $offset .= '<li><a onclick="xs_translate_select_language(\'' . $code . '\');" href="">
-                        <span class="flag-icon flag-icon-'.$prop['iso'].'"></span>    '.$prop['english_name'].
-                        '</a></li>';
-                        
+                $languages = xs_framework::get_available_language( [
+                        'english_name' => TRUE,
+                        'iso' => TRUE
+                ]);
+
+                $current_iso = $languages[$user_lang]['iso'];
+                $offset = '
+<li>
+<a href="">
+<span class="flag-icon flag-icon-'.$current_iso.'">
+</span>
+</a>
+<ul class="sub-menu">';
+
+
+                foreach($languages as $code => $prop) {
+                        $offset .= '
+<li>
+<a onclick="xs_translate_select_language(\'' . $code. '\');" href="">
+<span class="flag-icon flag-icon-'.$prop['iso'].'">
+</span>   '.$prop['english_name'].'</a></li>';
+
+                }
                 $offset .= '</ul></li>';
                 return $items . $offset;
         }
@@ -190,15 +219,15 @@ class xs_translate
         {
                 if($this->options['use_google_translate'] == false)
                         return;
-                        
+
                 wp_enqueue_script('xs_google_translate_script', "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
-                
+
         }
 
         /**
         * This function check if the redirection based on the browser language is enabled. If it is add cookies to manage language
         *
-        * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects 
+        * @return mixed it returns false if the redirection is not possible, due to some of the restriction mentioned above. Otherwise, it just redirects
         * the user.
         */
         function redirect()
@@ -209,7 +238,7 @@ class xs_translate
                 $redirectUrl = $this->get_url_translate($url);
                 if($redirectUrl == false)
                         return NULL;
-                
+
                 if ($url != $redirectUrl) {
                         wp_redirect($redirectUrl);
                         exit;
@@ -234,20 +263,20 @@ class xs_translate
                 //if the language of the post is the same language of the translation
                 if($post_language == $user_language)
                         return $post_id;
-                
+
                 $values = get_post_custom( $post_id );
                 $lang = isset( $values['xs_translate_language'][0] ) ? $values['xs_translate_language'][0] : '';
                 $native = isset( $values['xs_translate_native_post'][0] ) ? $values['xs_translate_native_post'][0] : '';
-                
+
                 if(!empty($native))
                         $native_post = get_post($native);
                 else
                         $native_post = get_post($post_id);
-                
+
                 if($user_language === xs_framework::get_option('default_language')) {
                         return $native_post->ID;
                 }
-                        
+
                 if($post_language !== $user_language)
                 {
                         $lang_query = array(
@@ -257,20 +286,20 @@ class xs_translate
                                         'compare' => '='
                                 )
                         );
-                        $native_query = array( 
+                        $native_query = array(
                                 array (
                                         'key' => 'xs_translate_native_post',
                                         'value' => $native_post->ID,
                                         'compare'=> '='
                                 )
                         );
-                        
+
                         $meta_query = array(
                                 'relation' => 'AND',
                                 $lang_query,
                                 $native_query
                         );
-                        
+
                         $the_posts = get_posts(  array(
                                 'post_type' => get_post_type($native_post->ID),
                                 'meta_query' => $meta_query,
@@ -281,7 +310,7 @@ class xs_translate
                         else
                                 return FALSE;
                 }
-                
+
                 return FALSE;
         }
 
@@ -293,13 +322,13 @@ class xs_translate
                 $offset = NULL;
                 if(empty($url))
                         return $offset;
-                        
+
                 $page_id = url_to_postid($url);
                 if($page_id == 0)
                         return $url;
                 $id = $this->get_post_id_translate($page_id);
                 $offset = get_permalink($id);
-                        
+
                 return $offset;
         }
 
@@ -325,14 +354,14 @@ class xs_translate
         }
 
 
-        function add_columns($columns) 
+        function add_columns($columns)
         {
                 $columns['language'] = 'Language';
                 $columns['native'] = 'Native';
                 return $columns;
         }
 
-        function show_columns($column, $post_id) 
+        function show_columns($column, $post_id)
         {
                 switch ( $column ) {
                         case 'language':
@@ -340,9 +369,9 @@ class xs_translate
                                 $iso = xs_framework::get_available_language(array('english_name' => FALSE, 'iso' => TRUE));
                                 if(isset($iso[$code]))
                                         echo '<span class="flag-icon flag-icon-'.$iso[$code].'"></span>';
-                                        
+
                                 return;
-                        case 'native': 
+                        case 'native':
                                 $native = intval($this->get_post_meta_native($post_id));
                                 if($native === 0)
                                         return;
@@ -393,14 +422,17 @@ class xs_translate
         *
         * @param $query object WordPress query object used to create the archive of posts.
         */
-        
+
         function filter_archive($query)
         {
                 $post_type = $query->get('post_type');
-                
+
                 $is_type = empty($post_type) || in_array($post_type, $this->options['post_type']);
                 //this flag indicates if we should filter posts by language
-                $modify_query = !$query->is_page() && !$query->is_single() && !$query->is_preview() && $is_type;
+                $modify_query = !$query->is_page() &&
+                        !$query->is_single() &&
+                        !$query->is_preview() &&
+                        $is_type;
 
                 //filter posts by language loaded in the page
                 if($modify_query){

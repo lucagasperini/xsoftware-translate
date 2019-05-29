@@ -18,9 +18,9 @@ class xs_translate_options
                 'backend_language' => 'en_GB',
                 'menu' => array()
         );
-        
+
         private $options = NULL;
-        
+
         private $languages = NULL;
 
         /**
@@ -33,22 +33,22 @@ class xs_translate_options
                 $this->options = get_option('xs_translate_options', $this->default_options);
                 $this->languages = xs_framework::get_available_language();
         }
-        
+
         /**
         * Add entries in menu sidebar in back end.
         */
         function register_menu()
         {
                 add_submenu_page(
-                        'xsoftware', 
-                        'Translate', 
-                        'Translate', 
-                        'manage_options', 
-                        'xsoftware_translate', 
+                        'xsoftware',
+                        'Translate',
+                        'Translate',
+                        'manage_options',
+                        'xsoftware_translate',
                         array($this,'create_settings_page'
                 ));
         }
-        
+
         /**
         * Create settings page in back end.
         */
@@ -67,7 +67,7 @@ class xs_translate_options
         /**
         * Register setting fields.
         */
-        function init_settings() 
+        function init_settings()
         {
                 if ( !current_user_can( 'manage_options' ) )  {
                         wp_die('You do not have sufficient permissions to access this page.');
@@ -86,9 +86,9 @@ class xs_translate_options
                         array($this,'show'),
                         'xs_translate_section'
                 );
-        
+
         }
-        
+
         function show()
         {
                 $tab = xs_framework::create_tabs( array(
@@ -101,7 +101,7 @@ class xs_translate_options
                         'home' => 'home',
                         'name' => 'main_tab'
                 ));
-                
+
                 switch($tab) {
                         case 'home':
                                 $this->show_general();
@@ -113,18 +113,18 @@ class xs_translate_options
                                 $this->show_post_type();
                                 return;
                 }
-               
+
         }
-        
+
         function show_general()
-        {   
+        {
                 $options = array(
                         'name' => 'xs_translate_options[frontend_language]',
                         'data' => $this->languages,
                         'selected' => $this->options['frontend_language'],
                         'echo' => TRUE
                 );
-        
+
                 add_settings_field(
                         $options['name'],
                         'Default language',
@@ -148,9 +148,9 @@ class xs_translate_options
                         'xs_general_setting_section',
                         $options
                 );
-                
-                $options = array( 
-                        'name' => 'xs_translate_options[automatic_redicted_ssl]', 
+
+                $options = array(
+                        'name' => 'xs_translate_options[automatic_redicted_ssl]',
                         'compare' => $this->options['automatic_redicted_ssl'],
                         'echo' => TRUE
                 );
@@ -162,9 +162,9 @@ class xs_translate_options
                         'xs_general_setting_section',
                         $options
                 );
-        
-                $options = array( 
-                        'name' => 'xs_translate_options[use_google_translate]', 
+
+                $options = array(
+                        'name' => 'xs_translate_options[use_google_translate]',
                         'compare' => $this->options['use_google_translate'],
                         'echo' => TRUE
                 );
@@ -177,7 +177,7 @@ class xs_translate_options
                         $options
                 );
 
-                $options = array( 
+                $options = array(
                         'name' => 'xs_translate_options[enable_translation_sidebars]',
                         'compare' => $this->options['enable_translation_sidebars'],
                         'echo' => TRUE
@@ -198,21 +198,18 @@ class xs_translate_options
         function input($input)
         {
                 $current = $this->options;
-                
+
                 if(isset($input['frontend_language'])) //HOTFIX CHECKBOX!
                 {
                         $current['automatic_redicted_ssl'] = isset($input['automatic_redicted_ssl']);
                         $current['use_google_translate'] = isset($input['use_google_translate']);
                         $current['enable_translation_sidebars'] = isset($input['enable_translation_sidebars']);
                 }
-                
+
                 foreach($input as $key => $value) {
-                        if($key == 'post_type')
-                                $current[$key] = array_keys($value);
-                        else
-                                $current[$key] = $value;
+                        $current[$key] = $value;
                 }
-                
+
                 return $current;
         }
 
@@ -222,7 +219,7 @@ class xs_translate_options
         * Create the HTML of a table with languages lits.
         * @param $options array plugin options saved.
         */
-        function show_menu() 
+        function show_menu()
         {
                 echo '<h2>Translated Menu Navbar</h2>';
                 // get the all languages available in the wp
@@ -231,17 +228,17 @@ class xs_translate_options
                 foreach ($menus as $menu ) {
                         $data_menu[$menu->slug] = $menu->name;
                 }
-        
+
                 foreach ($languages as $code => $name ) {
                         $headers[]  = $name;
                         if(isset($this->options['menu'][$code]))
                                 $selected = $this->options['menu'][$code];
                         else
                                 $selected = reset($data_menu);
-                                
+
                         $data_table[0][] = xs_framework::create_select( array(
-                                'name' => 'xs_translate_options[menu]['.$code.']', 
-                                'data' => $data_menu, 
+                                'name' => 'xs_translate_options[menu]['.$code.']',
+                                'data' => $data_menu,
                                 'selected' => $selected
                         ));
                 }
@@ -251,25 +248,31 @@ class xs_translate_options
         /*
         * create table language filter this is for enable and disable post_type
         */
-        function show_post_type() 
+        function show_post_type()
         {
                 echo '<h2>Filter Post Type</h2>';
                 // get the information that actually is in the DB
                 $options = isset($this->options['post_type']) ? $this->options['post_type'] : '';
-                
+
                 $post_types = get_post_types(['_builtin' => false]); // get all custom post types
                 $post_types['post'] = 'post'; // add default post type
                 $post_types['page'] = 'page'; // add default post type
-
                 $headers = array('Enable / Disable', 'Post types');
                 $data_table = array();
+                $i = 0;
+
                 foreach($post_types as $post_type) {
-                        $data_table[$post_type][0] = xs_framework::create_input_checkbox( array(
-                                'name' => 'xs_translate_options[post_type]['.$post_type.']',
-                                'compare' => in_array($post_type, $options)
-                        ));
+
+                        $data_table[$post_type][0] =
+                        xs_framework::create_input_checkbox( [
+                        'name'=>'xs_translate_options[post_type]['.$i.']',
+                        'compare' => in_array($post_type, $options),
+                        'value' => $post_type
+                        ]);
+
                         $data_table[$post_type][1] = $post_type;
-                        
+                        $i = $i + 1;
+
                 }
                 xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
         }
