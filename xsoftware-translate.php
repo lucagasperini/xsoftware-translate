@@ -34,6 +34,7 @@ class xs_translate
         {
                 $this->options = get_option('xs_translate_options');
 
+                add_action('init', array($this, 'setup'));
                 add_action('add_meta_boxes', array($this, 'metaboxes'));
                 add_action('save_post', array($this,'metaboxes_save'));
                 add_filter('manage_posts_columns', array($this, 'add_columns'));
@@ -57,12 +58,14 @@ class xs_translate
                         10,
                         2
                 );
+        }
 
+        function setup()
+        {
                 xs_framework::register_plugin(
                         'xs_translate',
                         'xs_translate_options'
                 );
-
         }
 
         function init_translation()
