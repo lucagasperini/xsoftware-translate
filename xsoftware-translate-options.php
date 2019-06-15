@@ -15,8 +15,7 @@ class xs_translate_options
                 'post_type' => array('post', 'page'),
                 'native_language' => 'en_GB',
                 'frontend_language' => 'en_GB',
-                'backend_language' => 'en_GB',
-                'menu' => array()
+                'backend_language' => 'en_GB'
         );
 
         private $options = NULL;
@@ -95,7 +94,6 @@ class xs_translate_options
                         'href' => '?page=xsoftware_translate',
                         'tabs' => array(
                                 'home' => 'Generals',
-                                'menu' => 'Menus',
                                 'post' => 'Post Types'
                         ),
                         'home' => 'home',
@@ -105,9 +103,6 @@ class xs_translate_options
                 switch($tab) {
                         case 'home':
                                 $this->show_general();
-                                return;
-                        case 'menu':
-                                $this->show_menu();
                                 return;
                         case 'post':
                                 $this->show_post_type();
@@ -211,38 +206,6 @@ class xs_translate_options
                 }
 
                 return $current;
-        }
-
-
-
-        /**
-        * Create the HTML of a table with languages lits.
-        * @param $options array plugin options saved.
-        */
-        function show_menu()
-        {
-                echo '<h2>Translated Menu Navbar</h2>';
-                // get the all languages available in the wp
-                $languages = xs_framework::get_available_language(array('language' => FALSE, 'english_name' => TRUE));
-                $menus = get_terms( 'nav_menu', array( 'hide_empty' => true ) ); // get menues
-                foreach ($menus as $menu ) {
-                        $data_menu[$menu->slug] = $menu->name;
-                }
-
-                foreach ($languages as $code => $name ) {
-                        $headers[]  = $name;
-                        if(isset($this->options['menu'][$code]))
-                                $selected = $this->options['menu'][$code];
-                        else
-                                $selected = reset($data_menu);
-
-                        $data_table[0][] = xs_framework::create_select( array(
-                                'name' => 'xs_translate_options[menu]['.$code.']',
-                                'data' => $data_menu,
-                                'selected' => $selected
-                        ));
-                }
-                xs_framework::create_table(array('headers' => $headers, 'data' => $data_table, 'class' => 'widefat fixed'));
         }
 
         /*

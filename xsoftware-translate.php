@@ -51,13 +51,7 @@ class xs_translate
                 add_action('pre_get_posts', [$this, 'filter_archive']);
                 add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
                 add_action('wp_enqueue_scripts', [$this,'enqueue_scripts']);
-                add_filter('wp_nav_menu_items', [
-                                $this,
-                                'select_correct_menu_language'
-                        ],
-                        10,
-                        2
-                );
+                add_filter('xs_framework_menu_items', [$this,'menu_language_items'], 1);
         }
 
         function setup()
@@ -166,29 +160,8 @@ class xs_translate
                 wp_enqueue_script('xs_translate_scripts', plugins_url('js/functions.js', __FILE__));
         }
 
-        function select_correct_menu_language($items, $args)
-        {
-                $menu_name = $args->menu;
-                $user_lang = xs_framework::get_user_language();
-                if(isset($this->options['menu'][$user_lang]))
-                        $menu =  $this->options['menu'][$user_lang];
-                else
-                        $menu = $this->options['menu'][xs_framework::get_option('default_language')];
 
-                $items = $this->print_select_menu_language($items);
-
-                if($menu_name == $menu)
-                        return $items;
-                else
-                        return wp_nav_menu( [
-                                'menu' => $menu,
-                                'items_wrap' => '%3$s' ,
-                                'container' => false,
-                                'echo' => false
-                        ] );
-        }
-
-        function print_select_menu_language($items)
+        function menu_language_items($items)
         {
                 $user_lang = xs_framework::get_user_language();
                 $languages = xs_framework::get_available_language( [
@@ -197,25 +170,31 @@ class xs_translate
                 ]);
 
                 $current_iso = $languages[$user_lang]['iso'];
-                $offset = '
-<li>
-<a href="">
-<span class="flag-icon flag-icon-'.$current_iso.'">
-</span>
-</a>
-<ul class="sub-menu">';
 
+                $top = xs_framework::insert_nav_menu_item([
+                        'title' => '<i class="flag-icon flag-icon-'.$current_iso.'"></i>',
+                        'url' => '',
+                        'order' => 1000
+                ]);
+
+                $items[] = $top;
+
+                $i = 1;
+                global $wp;
 
                 foreach($languages as $code => $prop) {
-                        $offset .= '
-<li>
-<a onclick="xs_translate_select_language(\'' . $code. '\');" href="">
-<span class="flag-icon flag-icon-'.$prop['iso'].'">
-</span>   '.$prop['english_name'].'</a></li>';
-
+                $items[] = xs_framework::insert_nav_menu_item([
+                        'title' => '<i class="flag-icon flag-icon-'.$prop['iso'].'"></i>
+                        <span> '.$prop['english_name'].'</span>',
+                        'url' =>'',
+                        'order' => 1000 + $i,
+                        'parent' => $top->ID,
+                        'class' => 'xs_translate_menu_item xs_translate_lang_'.$code
+                ]);
+                $i = $i + 1;
                 }
-                $offset .= '</ul></li>';
-                return $items . $offset;
+
+                return $items;
         }
 
         function translate_by_google()
