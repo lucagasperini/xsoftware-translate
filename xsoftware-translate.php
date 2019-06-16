@@ -180,7 +180,6 @@ class xs_translate
                 $items[] = $top;
 
                 $i = 1;
-                global $wp;
 
                 foreach($languages as $code => $prop) {
                 $items[] = xs_framework::insert_nav_menu_item([

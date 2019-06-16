@@ -3,10 +3,18 @@ function googleTranslateElementInit()
         new google.translate.TranslateElement('google_translate_element');
 }
 
-jQuery(function($) {
-$( ".xs_translate_menu_item" ).click( function()
+window.onload = function() {
+        var translate_menu_item = document.getElementsByClassName('xs_translate_menu_item');
+
+        for (var i = 0; i < translate_menu_item.length; i++) {
+                translate_menu_item[i].addEventListener('click', translate_set_cookie, false);
+        }
+};
+
+
+function translate_set_cookie()
 {
-        var classes = $(this).attr('class').split(' ');
+        var classes = this.className.split(' ');
         classes.forEach(function(item) {
                 if(item.includes('xs_translate_lang_'))
                         lang = item.replace('xs_translate_lang_','');
@@ -18,5 +26,4 @@ $( ".xs_translate_menu_item" ).click( function()
         var str='xs_framework_user_language'+"="+lang+";expires="+date.toGMTString()+";path=/"
         document.cookie = str;
         location.reload();
-});
-});
+}
