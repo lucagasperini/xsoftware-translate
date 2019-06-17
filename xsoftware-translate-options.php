@@ -29,7 +29,7 @@ class xs_translate_options
         {
                 add_action("admin_menu", array($this, "register_menu"));
                 add_action("admin_init", array($this, "init_settings"));
-                $this->options = get_option('xs_translate_options', $this->default_options);
+                $this->options = get_option('xs_options_translate', $this->default_options);
                 $this->languages = xs_framework::get_available_language();
         }
 
@@ -56,7 +56,7 @@ class xs_translate_options
                 echo '<div class="wrap">';
                 echo '<h2>User Language Switch</h2>';
                 echo '<form method="post" action="options.php" enctype="multipart/form-data">';
-                settings_fields( 'xs_translate_options' );
+                settings_fields( 'xs_options_translate' );
                 do_settings_sections( 'xs_translate_section' );
                 submit_button( '' );
                 echo '</form>';
@@ -73,8 +73,8 @@ class xs_translate_options
                 }
                 //register settings
                 register_setting(
-                        'xs_translate_options',
-                        'xs_translate_options',
+                        'xs_options_translate',
+                        'xs_options_translate',
                         array($this,'input')
                 );
 
@@ -114,7 +114,7 @@ class xs_translate_options
         function show_general()
         {
                 $options = array(
-                        'name' => 'xs_translate_options[frontend_language]',
+                        'name' => 'xs_options_translate[frontend_language]',
                         'data' => $this->languages,
                         'selected' => $this->options['frontend_language'],
                         'echo' => TRUE
@@ -130,7 +130,7 @@ class xs_translate_options
                 );
 
                 $options = array(
-                        'name' => 'xs_translate_options[backend_language]',
+                        'name' => 'xs_options_translate[backend_language]',
                         'data' => $this->languages,
                         'selected' => $this->options['backend_language'],
                         'echo' => TRUE
@@ -145,7 +145,7 @@ class xs_translate_options
                 );
 
                 $options = array(
-                        'name' => 'xs_translate_options[automatic_redicted_ssl]',
+                        'name' => 'xs_options_translate[automatic_redicted_ssl]',
                         'compare' => $this->options['automatic_redicted_ssl'],
                         'echo' => TRUE
                 );
@@ -159,7 +159,7 @@ class xs_translate_options
                 );
 
                 $options = array(
-                        'name' => 'xs_translate_options[use_google_translate]',
+                        'name' => 'xs_options_translate[use_google_translate]',
                         'compare' => $this->options['use_google_translate'],
                         'echo' => TRUE
                 );
@@ -173,7 +173,7 @@ class xs_translate_options
                 );
 
                 $options = array(
-                        'name' => 'xs_translate_options[enable_translation_sidebars]',
+                        'name' => 'xs_options_translate[enable_translation_sidebars]',
                         'compare' => $this->options['enable_translation_sidebars'],
                         'echo' => TRUE
                 );
@@ -228,7 +228,7 @@ class xs_translate_options
 
                         $data_table[$post_type][0] =
                         xs_framework::create_input_checkbox( [
-                        'name'=>'xs_translate_options[post_type]['.$i.']',
+                        'name'=>'xs_options_translate[post_type]['.$i.']',
                         'compare' => in_array($post_type, $options),
                         'value' => $post_type
                         ]);

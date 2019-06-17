@@ -32,7 +32,7 @@ class xs_translate
         */
         function __construct()
         {
-                $this->options = get_option('xs_translate_options');
+                $this->options = get_option('xs_options_translate');
 
                 add_action('init', array($this, 'setup'));
                 add_action('add_meta_boxes', array($this, 'metaboxes'));
@@ -58,7 +58,7 @@ class xs_translate
         {
                 xs_framework::register_plugin(
                         'xs_translate',
-                        'xs_translate_options'
+                        'xs_options_translate'
                 );
         }
 
