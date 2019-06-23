@@ -157,7 +157,10 @@ class xs_translate
 
         function enqueue_scripts()
         {
-                wp_enqueue_script('xs_translate_scripts', plugins_url('js/functions.js', __FILE__));
+                wp_enqueue_script(
+                        'xs_translate_scripts',
+                        plugins_url('js/functions.min.js', __FILE__)
+                );
         }
 
 
