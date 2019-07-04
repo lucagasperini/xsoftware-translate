@@ -37,10 +37,20 @@ class xs_translate
                 add_action('init', array($this, 'setup'));
                 add_action('add_meta_boxes', array($this, 'metaboxes'));
                 add_action('save_post', array($this,'metaboxes_save'));
-                add_filter('manage_posts_columns', array($this, 'add_columns'));
-                add_filter('manage_pages_columns', array($this, 'add_columns'));
-                add_action('manage_posts_custom_column',  array($this, 'show_columns'), 10, 2);
-                add_action('manage_pages_custom_column',  array($this, 'show_columns'), 10, 2);
+                foreach($this->options['post_type'] as $type) {
+
+                        add_filter(
+                                'manage_'.$type.'_posts_columns',
+                                [$this, 'add_columns']
+                        );
+                        add_action(
+                                'manage_'.$type.'_posts_custom_column',
+                                [$this, 'show_columns'],
+                                10,
+                                2
+                        );
+
+                }
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
                 add_filter('locale', array($this, 'set_locale'));
 
