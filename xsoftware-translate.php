@@ -56,11 +56,13 @@ class xs_translate
 
                 if(is_admin()) return;
 
-                $this->init_translation();
+                if(xs_framework::can_use_cookie()) {
+                        $this->init_translation();
+                        add_action('pre_get_posts', [$this, 'filter_archive']);
+                        add_action('wp_enqueue_scripts', [$this,'enqueue_scripts']);
+                }
 
-                add_action('pre_get_posts', [$this, 'filter_archive']);
                 add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
-                add_action('wp_enqueue_scripts', [$this,'enqueue_scripts']);
                 add_filter('xs_framework_menu_items', [$this,'menu_language_items'], 1);
         }
 
@@ -176,6 +178,10 @@ class xs_translate
 
         function menu_language_items($items)
         {
+                global $post;
+
+                $current_url = !empty($post) ? get_permalink($post->ID) : '';
+
                 $user_lang = xs_framework::get_user_language();
                 $languages = xs_framework::get_available_language( [
                         'english_name' => TRUE,
@@ -195,15 +201,20 @@ class xs_translate
                 $i = 1;
 
                 foreach($languages as $code => $prop) {
-                $items[] = xs_framework::insert_nav_menu_item([
-                        'title' => '<i class="flag-icon flag-icon-'.$prop['iso'].'"></i>
-                        <span> '.$prop['english_name'].'</span>',
-                        'url' =>'',
-                        'order' => 1000 + $i,
-                        'parent' => $top->ID,
-                        'class' => 'xs_translate_menu_item xs_translate_lang_'.$code
-                ]);
-                $i = $i + 1;
+                        if(xs_framework::can_use_cookie())
+                                $url = '';
+                        else
+                                $url = $this->get_url_translate($current_url,$code);
+
+                        $items[] = xs_framework::insert_nav_menu_item([
+                                'title' => '<i class="flag-icon flag-icon-'.$prop['iso'].'"></i>
+                                <span> '.$prop['english_name'].'</span>',
+                                'url' => $url,
+                                'order' => 1000 + $i,
+                                'parent' => $top->ID,
+                                'class' => 'xs_translate_menu_item xs_translate_lang_'.$code
+                        ]);
+                        $i = $i + 1;
                 }
 
                 return $items;
@@ -215,8 +226,8 @@ class xs_translate
                         return;
 
                 wp_enqueue_script(
-                'xs_google_translate_script',
-               "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+                        'xs_google_translate_script',
+                        'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
                 );
 
         }
@@ -250,15 +261,18 @@ class xs_translate
         *
         * @return mixed it returns id of translation post as an integer or false if translation doesn't exist.
         */
-        function get_post_id_translate($post_id)
+        function get_post_id_translate($post_id, $lang = NULL   )
         {
-                $user_language = xs_framework::get_user_language();
+                if(empty($lang))
+                        $user_language = xs_framework::get_user_language();
+                else
+                        $user_language = $lang;
 
                 //get the translation of the post
                 $post_language = $this->get_post_meta_language($post_id);
 
                 //if the language of the post is the same language of the translation
-                if($post_language == $user_language)
+                if($post_language === $user_language)
                         return $post_id;
 
                 $values = get_post_custom( $post_id );
@@ -276,33 +290,30 @@ class xs_translate
 
                 if($post_language !== $user_language)
                 {
-                        $lang_query = array(
-                                array(
-                                        'key' => 'xs_translate_language',
-                                        'value' => $user_language,
-                                        'compare' => '='
-                                )
-                        );
-                        $native_query = array(
-                                array (
-                                        'key' => 'xs_translate_native_post',
-                                        'value' => $native_post->ID,
-                                        'compare'=> '='
-                                )
-                        );
+                        $lang_query = [
+                                'key' => 'xs_translate_language',
+                                'value' => $user_language,
+                                'compare' => '='
+                        ];
+                        $native_query = [
+                                'key' => 'xs_translate_native_post',
+                                'value' => $native_post->ID,
+                                'compare' => '='
+                        ];
 
-                        $meta_query = array(
+                        $meta_query = [
                                 'relation' => 'AND',
                                 $lang_query,
                                 $native_query
-                        );
+                        ];
 
-                        $the_posts = get_posts(  array(
-                                'post_type' => get_post_type($native_post->ID),
-                                'meta_query' => $meta_query,
-                                'posts_per_page' => -1,
-                        ));
-                        if(isset($the_posts) && count($the_posts) == 1)
+                        $the_posts = get_posts([
+                                'post_type' => $native_post->post_type,
+                                'numberposts' => 1,
+                                'meta_query' => $meta_query
+                        ]);
+
+                        if(isset($the_posts) && !empty($the_posts))
                                 return $the_posts[0]->ID;
                         else
                                 return FALSE;
@@ -314,19 +325,23 @@ class xs_translate
         /**
         * Get the page of traslated url.
         */
-        function get_url_translate($url)
+        function get_url_translate($url, $lang = NULL)
         {
                 $offset = NULL;
                 if(empty($url))
                         return $offset;
 
                 $page_id = url_to_postid($url);
+
                 if($page_id == 0)
                         return $url;
-                $id = $this->get_post_id_translate($page_id);
-                $offset = get_permalink($id);
 
-                return $offset;
+                $id = $this->get_post_id_translate($page_id, $lang);
+
+                if(empty($id))
+                        return $url;
+                else
+                        return get_permalink($id);
         }
 
         /**
@@ -379,40 +394,6 @@ class xs_translate
                                 return;
                 }
         }
-        /**
-        * Add queries to filter posts by languages. If a post doesn't have language.
-        *
-        * @param $query object WordPress query object where language query will be added.
-        */
-        function meta_query(&$query)
-        {
-                //get language displayed
-                $language_displayed = xs_framework::get_user_language();
-
-                $language_query = array(
-                                array(
-                                'key' => 'xs_translate_language',
-                                'value' => $language_displayed,
-                                'compare' => '='
-                                ),
-                        );
-
-                //get current meta query
-                $meta_query = $query->get('meta_query');
-
-                //add language query to the meta query
-                if(empty($meta_query))
-                        $meta_query = $language_query;
-                else
-                        $meta_query = array(
-                                'relation' => 'AND',
-                                $language_query,
-                                $meta_query
-                        );
-
-                //set the new meta query
-                $query->set('meta_query', $meta_query);
-        }
 
         /**
         * Filter posts in archives by language.
@@ -425,15 +406,41 @@ class xs_translate
                 $post_type = $query->get('post_type');
 
                 $is_type = empty($post_type) || in_array($post_type, $this->options['post_type']);
-                //this flag indicates if we should filter posts by language
+
                 $modify_query = !$query->is_page() &&
                         !$query->is_single() &&
                         !$query->is_preview() &&
                         $is_type;
 
+
                 //filter posts by language loaded in the page
-                if($modify_query){
-                        $this->meta_query($query);
+                if($modify_query) {
+                        //get language displayed
+                        $language_displayed = xs_framework::get_user_language();
+
+                        $language_query = array(
+                                        array(
+                                        'key' => 'xs_translate_language',
+                                        'value' => $language_displayed,
+                                        'compare' => '='
+                                        ),
+                                );
+
+                        //get current meta query
+                        $meta_query = $query->get('meta_query');
+
+                        //add language query to the meta query
+                        if(empty($meta_query))
+                                $meta_query = $language_query;
+                        else
+                                $meta_query = array(
+                                        'relation' => 'AND',
+                                        $language_query,
+                                        $meta_query
+                                );
+
+                        //set the new meta query
+                        $query->set('meta_query', $meta_query);
                 }
         }
 }
