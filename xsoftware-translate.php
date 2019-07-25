@@ -12,13 +12,6 @@ if(!defined("ABSPATH")) die;
 
 if (!class_exists("xs_translate")) :
 
-add_action( 'init', 'load_xs_translate');
-
-function load_xs_translate()
-{
-        $xs_translate_plugin = new xs_translate();
-}
-
 include 'xsoftware-translate-options.php';
 
 class xs_translate
@@ -52,12 +45,11 @@ class xs_translate
 
                 }
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
-                add_filter('locale', array($this, 'set_locale'));
+                add_filter('locale', array($this, 'set_locale'), 0, 1);
 
                 if(is_admin()) return;
 
                 if(xs_framework::can_use_cookie()) {
-                        $this->init_translation();
                         add_action('pre_get_posts', [$this, 'filter_archive']);
                         add_action('wp_enqueue_scripts', [$this,'enqueue_scripts']);
                 }
@@ -72,28 +64,39 @@ class xs_translate
                         'xs_translate',
                         'xs_options_translate'
                 );
+
+                if(xs_framework::can_use_cookie()) {
+                        $user_lang = xs_framework::get_user_language();
+                        $langs = xs_framework::get_available_language();
+
+                        if(isset($langs[$user_lang])) {
+                                //redirects the user based on the browser language.
+                                //It detectes the browser language and redirect the user to the site in that language.
+                                $this->redirect();
+                        } else {
+                                $this->translate_by_google();
+                        }
+                }
         }
 
-        function init_translation()
+        function set_locale($locale)
         {
+
                 $user_lang = xs_framework::get_user_language();
                 $langs = xs_framework::get_available_language();
 
                 if(isset($langs[$user_lang])) {
-                        //redirects the user based on the browser language.
-                        //It detectes the browser language and redirect the user to the site in that language.
-                        $this->redirect();
+                        $locale = $user_lang;
+                } else if (is_admin()) {
+                        $locale = $this->options['backend_language'];
                 } else {
-                        $this->translate_by_google();
+                        $locale = $this->options['frontend_language'];
                 }
-        }
 
-        function set_locale()
-        {
-                if ( is_admin() )
-                        return $this->options['backend_language'];
-                else
-                        return $this->options['frontend_language'];
+                if($locale === 'en_GB')
+                        $locale = 'en_US';
+
+                return $locale;
         }
 
         function metaboxes()
@@ -445,4 +448,6 @@ class xs_translate
         }
 }
 endif;
+
+$xs_translate_plugin = new xs_translate();
 ?>
