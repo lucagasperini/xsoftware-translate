@@ -441,7 +441,8 @@ class xs_translate
                 }
         }
 }
-endif;
 
 $xs_translate_plugin = new xs_translate();
+
+endif;
 ?>
