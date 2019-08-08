@@ -44,7 +44,8 @@ class xs_translate
                         );
 
                 }
-                add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
+                add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
+                add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
                 add_filter('locale', array($this, 'set_locale'), 0, 1);
 
                 if(is_admin()) return;
@@ -54,7 +55,6 @@ class xs_translate
                         add_action('wp_enqueue_scripts', [$this,'enqueue_scripts']);
                 }
 
-                add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
                 add_filter('xs_framework_menu_items', [$this,'menu_language_items'], 1);
         }
 
