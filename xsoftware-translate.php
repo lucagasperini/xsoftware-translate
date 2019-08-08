@@ -44,7 +44,6 @@ class xs_translate
                         );
 
                 }
-                add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
                 add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
                 add_filter('locale', array($this, 'set_locale'), 0, 1);
 
@@ -163,11 +162,6 @@ class xs_translate
                         update_post_meta( $post_id, 'xs_translate_language', $_POST['xs_translate_language'] );
                 if( isset( $_POST['xs_translate_native_post'] ) )
                         update_post_meta( $post_id, 'xs_translate_native_post', $_POST['xs_translate_native_post'] );
-        }
-
-        function enqueue_styles()
-        {
-                wp_enqueue_style('xs_translate_style_flag', plugins_url('flag-icon-css/css/flag-icon.min.css', __FILE__));
         }
 
         function enqueue_scripts()
