@@ -2,8 +2,8 @@
 /*
 Plugin Name: XSoftware Translate
 Description: Build a multilingual website. Linking translations of content and allow visitors to browse your website in different languages.
-Version: 1.7
-Author: XSoftware
+Version: 1.0
+Author: Luca Gasperini
 Author URI: http://www.xsoftware.it
 License: GPL3
 */
